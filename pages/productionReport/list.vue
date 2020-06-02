@@ -9,9 +9,9 @@
 		<view class="orderList">
 			<view class="order" v-for="(order, idx) in orderList" :key="idx" @click="toDetail(order)">
 				<text>{{ idx + 1 }}</text>
-				<text>{{ order.date }}</text>
-				<text>{{ order.orderNo }}</text>
-				<text>{{ order.production }}</text>
+				<text>{{ order.FDate }}</text>
+				<text>{{ order.FBillNo }}</text>
+				<text>{{ order.FName }}</text>
 			</view>
 		</view>
 		<movable-area style="width: 100%;height: calc(100vh - 45px);position: absolute;top: 45px;">
@@ -21,24 +21,51 @@
 </template>
 
 <script>
+	import { combineRequsetData } from '../../utils/util.js'
+	import { mainUrl } from '../../utils/url.js'
 	export default {
 		data() {
 			return {
 				x: 0,
 				y: 200,
-				orderList: [{date: '2020-06-01', orderNo: 'WORK001', production: '电脑'}, {date: '2020-06-01', orderNo: 'WORK001', production: '鼠标'}]
+				orderList: []
 			}
+		},
+		onShow () {
+			this.orderList = []
 		},
 		methods: {
 			scan () {
 				uni.scanCode({
 				    onlyFromCamera: false,
 				    success: (res) => {
-						console.log(res.result)
+						console.log('res.result', res.result)
+						var tmpData = "<FSQL>select * from Z_ICMO where FBillNo='" + res.result + "'</FSQL>"
+						uni.request({
+							url: mainUrl,
+							method: 'POST',
+							data: combineRequsetData('JA_LIST', tmpData),
+							header:{
+								'Content-Type':'text/xml'
+							},
+							success: (res) => {
+								if (res.data.length == 0) {
+									uni.showModal({
+										content: '无该单号信息！',
+										showCancel: false
+									});
+								} else {
+									this.orderList = res.data
+								}
+							},
+							fail: (err) => {
+								console.log('request fail', err)
+							}
+						})
 					},
 					fail: (err) => {
 						console.log(err)
-					},
+					}
 				})
 			},
 			toDetail (order) {
@@ -117,6 +144,7 @@
 		height: 50px;
 		border-radius: 50%;
 		background: #1196DB;
+		font-size: 14px;
 		color: #ffffff;
 		text-align: center;
 		line-height: 50px;

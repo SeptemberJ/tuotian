@@ -20,6 +20,7 @@
 </template>
 
 <script>
+	import { combineRequsetData } from '../../utils/util.js'
 	export default {
 		data() {
 			return {
@@ -30,9 +31,49 @@
 		},
 		methods: {
 			login() {
+				// if (!this.account || !this.password) {
+				// 	uni.showModal({
+				// 		content: '请输入账户信息！',
+				// 		showCancel: false
+				// 	});
+				// 	return false
+				// }
 				uni.redirectTo({
 					url: '../module/index'
 				})
+				// this.loading =  true
+				// var tmpData = '<fuserno>' + this.account + '</fuserno>'
+				// 	tmpData += '<fuserpsw>' + this.password + '</fuserpsw>'
+				// uni.request({
+				// 	url: 'http://111.231.134.126:8093/Service1.asmx',
+				// 	method: 'POST',
+				// 	data: combineRequsetData('ja_login', tmpData),
+				// 	header:{
+				// 		'Content-Type':'text/xml;charset=utf-8'
+				// 	},
+				// 	success: (res) => {
+				// 		console.log(res.data)
+				// 		if (res.data.status == 1) {
+				// 			uni.redirectTo({
+				// 				url: '../module/index'
+				// 			})
+				// 		} else {
+				// 			uni.showModal({
+				// 				content: res.data.message + '！',
+				// 				showCancel: false
+				// 			});
+				// 		}
+				// 	},
+				// 	fail: (err) => {
+				// 		console.log('request fail', err)
+				// 	},
+				// 	complete: () => {
+				// 		this.loading = false
+				// 	}
+				// })
+				// uni.redirectTo({
+				// 	url: '../module/index'
+				// })
 			}
 		}
 	}
@@ -53,8 +94,8 @@
 		align-items: center;
 	}
 	.logoBar image{
-		width: 100px;
-		height: 100px;
+		width: 146px;
+		height: 46px;
 		display: block;
 		margin: 0 auto;
 	}

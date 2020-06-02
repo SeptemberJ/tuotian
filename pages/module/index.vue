@@ -7,6 +7,12 @@
 					<text class="text">生产汇报</text>
 				</view>
 		    </uni-grid-item>
+			<uni-grid-item>
+				<view class="moduleItem" @click="toModule('warehousing')">
+					<image src="../../images/ruku.png"></image>
+					<text class="text">入库上架</text>
+				</view>
+			</uni-grid-item>
 		</uni-grid>
 	</view>
 </template>
@@ -27,10 +33,15 @@
 			toModule(kind) {
 				switch (kind) {
 					case 'productionReport':
-					uni.navigateTo({
-						url: '../productionReport/list'
-					})
-					break
+						uni.navigateTo({
+							url: '../productionReport/list'
+						})
+						break
+					case 'warehousing':
+						uni.navigateTo({
+							url: '../warehousing/order'
+						})
+						break
 				}
 			}
 		}

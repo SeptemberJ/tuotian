@@ -23,12 +23,30 @@
 			"style": {
 				"navigationBarTitleText": "生产汇报单"
 			}
+		},
+		{
+			"path": "pages/warehousing/order",
+			"style": {
+				"navigationBarTitleText": "待处理收料单"
+			}
+		},
+		{
+			"path": "pages/warehousing/list",
+			"style": {
+				"navigationBarTitleText": "待处理收料单"
+			}
+		},
+		{
+			"path": "pages/warehousing/detail",
+			"style": {
+				"navigationBarTitleText": "收料单明细"
+			}
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
 		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "rgb(17,150,219)",
+		"navigationBarBackgroundColor": "#1196DB",
 		"backgroundColor": "#FFFFFF"
 	}
 }
