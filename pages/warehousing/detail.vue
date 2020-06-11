@@ -13,11 +13,11 @@
 				<view>收料日期：</view>
 				<view>{{ FDate}}</view>
 			</view>
-			<view class="itemBar">
+			<view class="itemBar" @click="seeStockInfo" style="background: #F5F5F5;">
 				<view>物料代码：</view>
 				<view>{{ FNumber}}</view>
 			</view>
-			<view class="itemBar">
+			<view class="itemBar" @click="seeStockInfo" style="background: #F5F5F5;">
 				<view>物料名称：</view>
 				<view>{{ FName}}</view>
 			</view>
@@ -71,10 +71,30 @@
 			<button type="primary" @click="scan" style="width:100px;">扫码</button>
 			<button type="warn" @click="submit" :loading="loading" style="border: 2px solid darkorange;background: darkorange;color: #fff;">提交</button>
 		</view>
+		<!-- stocInfo -->
+		<uni-popup ref="popup" type="bottom">
+			<view class="StockBlock">
+				<view class="StockTit">
+					<text>仓库名称</text>
+					<text>仓库代码</text>
+					<text>库位</text>
+					<text>库存</text>
+				</view>
+				<view class="StockMain">
+					<view style="width: 100%;display: flex;justify-content: space-between;" v-for="(stock, idx) in StockInfo" :key="idx">
+						<text>{{ stock.FStockName }}</text>
+						<text>{{ stock.FStockNumber }}</text>
+						<text>{{ stock.FSP }}</text>
+						<text>{{ stock.FQty }}</text>
+					</view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
 <script>
+	import uniPopup from '@/components/uni-popup/uni-popup.vue'
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
 	export default {
@@ -97,8 +117,12 @@
 				lineData: [],
 				lineItem: {},
 				loadingZC: false,
-				loading: false
+				loading: false,
+				StockInfo: []
 			}
+		},
+		components: {
+			uniPopup
 		},
 		onLoad(options) {
 			let order = JSON.parse(options.order)
@@ -119,6 +143,31 @@
 			this.getDetail(order.FInterID, order.FEntryID)
 		},
 		methods: {
+			// 查看库存信息
+			seeStockInfo () {
+				var tmpData = "<FSQL>select FStockNumber,FStockName,FSP,FQty from Z_ICInventory WHERE FNUMBER='" + this.FNumber + "'" + '</FSQL>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('JA_LIST', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						if (res.data.length > 0) {
+							this.StockInfo = res.data
+							this.$refs.popup.open()
+						}
+					},
+					fail: (err) => {
+						console.log('request fail', err);
+						uni.showModal({
+							content: err.errMsg,
+							showCancel: false
+						});
+					}
+				});
+			},
 			scan () {
 				if (this.FAuxqtyMust == this.cumulative) {
 					uni.showModal({
@@ -138,8 +187,9 @@
 							if (resultArr[0] && resultArr[1]) {
 								let resultArr = res.result.split('[')
 								let result = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: resultArr[0], FSP: resultArr[1]}
-								this.lineData.push({...this.orderInfo, ...result})
-								this.updateNumber()
+								this.checkIfNormalStock(result)
+								// this.lineData.push({...this.orderInfo, ...result})
+								// this.updateNumber()
 							} else {
 								uni.showModal({
 									content: '请确认您的二维码!',
@@ -152,6 +202,43 @@
 						}
 					})
 				}
+			},
+			checkIfNormalStock (result) {
+				var tmpData = "<FSQL>select FStockNumber,FStockName,FSP,FQty from Z_ICInventory WHERE FNUMBER='" + this.FNumber + "' and FStockNumber='" + result.FStock + "' and FSP='" +result.FSP + "'</FSQL>"
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('JA_LIST', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						if (res.data.length == 0) {
+							// 不是常用货位确认是否显示
+							uni.showModal({
+								content: '不是常用货位,请确认',
+								success: (res) => {
+									if (res.confirm) {
+										this.lineData.push({...this.orderInfo, ...result})
+										this.updateNumber()
+									} else if (res.cancel) {
+									}
+								}
+							});
+						} else {
+							// 常用货位直接添加显示
+							this.lineData.push({...this.orderInfo, ...result})
+							this.updateNumber()
+						}
+					},
+					fail: (err) => {
+						console.log('request fail', err);
+						uni.showModal({
+							content: err.errMsg,
+							showCancel: false
+						});
+					}
+				})
 			},
 			updateNumber (e, idx) {
 				if (!e) {
@@ -366,6 +453,7 @@
 	}
 	.lineData{
 		width: 100%;
+		float: left;
 	}
 	.columnTit{
 		width: 1410px;
@@ -453,5 +541,26 @@
 		width: 100px;
 		margin: 0 20px;
 		display: inline-block;
+	}
+	.StockBlock{
+		background: #ffffff;
+	}
+	.StockTit{
+		width: 100%;
+		height: 30px;
+		display: flex;
+		align-items: center;
+		background: #F5F5F5;
+	}
+	.StockTit text{
+		width: 25%;
+		text-align: center;
+	}
+	.StockMain{
+		padding: 0 15px 20px 15px;
+	}
+	.StockMain text{
+		width: 25%;
+		text-align: center;
 	}
 </style>

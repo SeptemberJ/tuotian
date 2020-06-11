@@ -30,12 +30,16 @@
 		</view>
 		<view class="columnItem">
 			<text>仓库名称</text>
-			<text>{{ wareName }}</text>
+			<text>
+			<picker @change="bindPickerChange" :value="indexW" :range="wareList" range-key="FName">
+				<view class="uni-input" style="color: #FF0000;">{{wareList[indexW].FName}}</view>
+			</picker>
+			</text>
 		</view>
-		<view class="columnItem">
+		<!-- <view class="columnItem">
 			<text>仓库内码</text>
-			<text><input class="uni-input" v-model="wareId" placeholder="请输入仓库内码"/></text>
-		</view>
+			<text>{{ wareId }}</text>
+		</view> -->
 		<button class="loginBt" :loading="loading" @click="submit">提 交</button>
 	</view>
 </template>
@@ -55,20 +59,27 @@
 				unit: '',
 				plantNumber: '',
 				number: '',
+				wareList: [],
+				indexW: 0,
 				wareName: '',
 				wareId: ''
 			}
 		},
 		onLoad(options) {
-			let order = JSON.parse(options.order)
-			this.date = order.FDate
-			this.FBillNo = order.FBillNo
-			this.production = order.FName
-			this.model = order.FModel
-			this.unit = order.FUnit
-			this.plantNumber = order.FAuxQty
-			this.number = order.FAuxQty
-			this.getWare(order.FStockID)
+			this.getDetail(options.FBillNo)
+			// let order = JSON.parse(options.order)
+			// this.date = order.FDate
+			// this.FBillNo = order.FBillNo
+			// this.production = order.FName
+			// this.model = order.FModel
+			// this.unit = order.FUnit
+			// this.plantNumber = order.FAuxQty
+			// this.number = order.FAuxQty
+			// this.wareId = order.FStockID
+			// let curWare = await this.getWare(order.FStockID)
+			// console.log('curWare---', curWare)
+			// this.wareName = curWare[0].FName
+			// this.indexW = curWare[0].idx
 		},
 		methods: {
 			submit () {
@@ -86,15 +97,18 @@
 					})
 					return false
 				}
-				if (this.wareId == '') {
-					uni.showModal({
-						content: '请输入仓库内码！',
-						showCancel: false
-					})
-					return false
+				let data = {
+					items: [{
+						FBillNO: this.FBillNo,
+						FAuxQty: this.number,
+						FStockID: this.wareId
+					}]
 				}
 				this.loading = true
-				var tmpData = "<FSQL>exec Z_ICStockBill_2 '" + this.FBillNo + "'," + this.number + ',' + this.wareId + '</FSQL>'
+				var tmpData = '<FJSON>' + JSON.stringify(data) + '</FJSON>'
+				// var tmpData = '<FBillNO>' + this.FBillNo + '</FBillNO>'
+				// 	tmpData += '<FAuxQty>' + this.number + '</FAuxQty>'
+				// 	tmpData += '<FStockID>' + this.wareId + '</FStockID>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -110,6 +124,9 @@
 								mask: true,
 								duration: 1500
 							})
+							setTimeout(() => {
+								uni.navigateBack()
+							}, 1500)
 						} else {
 							uni.showModal({
 								content: '提交失败!',
@@ -125,8 +142,15 @@
 					}
 				})
 			},
-			getWare (FStockID) {
-				var tmpData = '<FSQL>select FItemID,FName from t_stock where FDeleted=0 and fitemid=' + FStockID + '</FSQL>'
+			bindPickerChange (e) {
+				this.indexW = e.target.value
+				this.wareId = this.wareList[e.target.value].FItemID
+			},
+			filterWare (ware) {
+				return ware.FItemID == this.wareId
+			},
+			getDetail (FBillNo) {
+				var tmpData = "<FSQL>select * from Z_ICMO where FBillNo='" + FBillNo + "'</FSQL>"
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -135,16 +159,59 @@
 						'Content-Type':'text/xml'
 					},
 					success: (res) => {
-						this.wareName = res.data[0].FName
-						this.wareId = res.data[0].FItemID
+						if (res.data.length == 0) {
+							uni.showModal({
+								content: '无该单号信息！',
+								showCancel: false
+							});
+						} else {
+							console.log(res.data)
+							let order = res.data[0]
+							this.date = order.FDate
+							this.FBillNo = order.FBillNo
+							this.production = order.FName
+							this.model = order.FModel
+							this.unit = order.FUnit
+							this.plantNumber = order.FAuxQty
+							this.number = order.FAuxQty
+							this.wareId = order.FStockID
+							this.getWare(order.FStockID)
+						}
 					},
 					fail: (err) => {
-						console.log('request fail', err);
-						// uni.showModal({
-						// 	content: err.errMsg,
-						// 	showCancel: false
-						// });
+						console.log('request fail', err)
 					}
+				})
+			},
+			getWare (FStockID) {
+				return new Promise((resolve, reject) => {
+					var tmpData = '<FSQL>select FItemID,FName from t_stock where FDeleted=0</FSQL>'
+					uni.request({
+						url: mainUrl,
+						method: 'POST',
+						data: combineRequsetData('JA_LIST', tmpData),
+						header:{
+							'Content-Type':'text/xml'
+						},
+						success: (res) => {
+							console.log('wareList', res.data)
+							this.wareList = res.data.map((item, idx) => {
+								item.idx = idx
+								return item
+							})
+							let curWare = res.data.filter(this.filterWare)
+							this.wareName = curWare[0].FName
+							this.indexW = curWare[0].idx
+							resolve(curWare)
+						},
+						fail: (err) => {
+							console.log('request fail', err);
+							// uni.showModal({
+							// 	content: err.errMsg,
+							// 	showCancel: false
+							// });
+						}
+					})
 				})
 			}
 		}

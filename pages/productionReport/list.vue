@@ -14,6 +14,9 @@
 				<text>{{ order.FName }}</text>
 			</view>
 		</view>
+		<view class="submitBlock">
+			<button class="submitBt" :loading="loading" @click="submit">提 交</button>
+		</view>
 		<movable-area style="width: 100%;height: calc(100vh - 45px);position: absolute;top: 45px;">
 			<movable-view :x="x" :y="y" direction="all" @click="scan" @change="onChange" class="dotScan">扫 码</movable-view>
 		</movable-area>
@@ -26,16 +29,40 @@
 	export default {
 		data() {
 			return {
+				loading: false,
 				x: 0,
 				y: 200,
 				orderList: []
 			}
 		},
 		onShow () {
-			this.orderList = []
+			// this.orderList = []
 		},
 		methods: {
 			scan () {
+				// var tmpData = "<FSQL>select * from Z_ICMO where FBillNo='" + 'WORK-212709' + "'</FSQL>"
+				// uni.request({
+				// 	url: mainUrl,
+				// 	method: 'POST',
+				// 	data: combineRequsetData('JA_LIST', tmpData),
+				// 	header:{
+				// 		'Content-Type':'text/xml'
+				// 	},
+				// 	success: (res) => {
+				// 		if (res.data.length == 0) {
+				// 			uni.showModal({
+				// 				content: '无该单号信息！',
+				// 				showCancel: false
+				// 			});
+				// 		} else {
+				// 			this.orderList = [...this.orderList, ...res.data]
+				// 			// this.orderList = [...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data, ...res.data,]
+				// 		}
+				// 	},
+				// 	fail: (err) => {
+				// 		console.log('request fail', err)
+				// 	}
+				// })
 				uni.scanCode({
 				    onlyFromCamera: false,
 				    success: (res) => {
@@ -55,7 +82,7 @@
 										showCancel: false
 									});
 								} else {
-									this.orderList = res.data
+									this.orderList = [...this.orderList, ...res.data]
 								}
 							},
 							fail: (err) => {
@@ -70,7 +97,49 @@
 			},
 			toDetail (order) {
 				uni.navigateTo({
-					url: './order?order=' + JSON.stringify(order)
+					url: './order?FBillNo=' + order.FBillNo
+				})
+			},
+			submit () {
+				let data = this.orderList.map(item => {
+					return {
+						FBillNO: item.FBillNo,
+						FAuxQty: item.FAuxQty,
+						FStockID: item.FStockID
+					}
+				})
+				console.log(data)
+				this.loading = true
+				var tmpData = '<FJSON>' + JSON.stringify({items: data}) + '</FJSON>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('ICMO', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						if (res.data[0].code == 1) {
+							uni.showToast({
+								title: '提交成功!',
+								icon: 'success',
+								mask: true,
+								duration: 1500
+							})
+							this.orderList = []
+						} else {
+							uni.showModal({
+								content: '提交失败!',
+								showCancel: false
+							})
+						}
+					},
+					fail: (err) => {
+						console.log('request fail', err)
+					},
+					complete: () => {
+						this.loading = false
+					}
 				})
 			},
 			onChange (e) {
@@ -93,7 +162,7 @@
 		background: #1196DB;
 		color: #ffffff;
 		position: fixed;
-		z-index: 99;
+		z-index: 999;
 	}
 	text{
 		padding: 0 5px;
@@ -118,6 +187,7 @@
 		z-index: 99;
 		display: flex;
 		flex-direction: column;
+		margin-bottom: 70px;
 	}
 	.order{
 		width: 100%;
@@ -149,5 +219,18 @@
 		text-align: center;
 		line-height: 50px;
 		z-index: 999;
+	}
+	.submitBlock{
+		width: 100%;
+		height: 50px;
+		position: fixed;
+		bottom: 0;
+		z-index: 99;
+	}
+	.submitBt{
+		color: #ffffff;
+		background: #FF0000;
+		border: 0;
+		border-radius: 0;
 	}
 </style>
