@@ -41,6 +41,30 @@
 			"style": {
 				"navigationBarTitleText": "收料单明细"
 			}
+		},
+		{
+			"path": "pages/locationInventory/index",
+			"style": {
+				"navigationBarTitleText": "货位盘点"
+			}
+		},
+		{
+			"path": "pages/locationAdjustment/index",
+			"style": {
+				"navigationBarTitleText": "货位调整"
+			}
+		},
+		{
+			"path": "pages/materiaOrder/order",
+			"style": {
+				"navigationBarTitleText": "领料单列表"
+			}
+		},
+		{
+			"path": "pages/materiaOrder/detail",
+			"style": {
+				"navigationBarTitleText": "领料单扫描核对"
+			}
 		}
 	],
 	"globalStyle": {

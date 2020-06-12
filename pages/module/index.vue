@@ -3,7 +3,7 @@
 		<uni-grid :column="3">
 		    <uni-grid-item>
 				<view class="moduleItem" @click="toModule('productionReport')">
-					<image src="../../images/gongzuohuibao.png"></image>
+					<image src="../../images/pandian.png"></image>
 					<text class="text">生产汇报</text>
 				</view>
 		    </uni-grid-item>
@@ -11,6 +11,24 @@
 				<view class="moduleItem" @click="toModule('warehousing')">
 					<image src="../../images/ruku.png"></image>
 					<text class="text">入库上架</text>
+				</view>
+			</uni-grid-item>
+			<uni-grid-item>
+				<view class="moduleItem" @click="toModule('inventory')">
+					<image src="../../images/PDA.png"></image>
+					<text class="text">货位盘点</text>
+				</view>
+			</uni-grid-item>
+			<uni-grid-item>
+				<view class="moduleItem" @click="toModule('locationAdjustment')">
+					<image src="../../images/chalvtiaozhengdan.png"></image>
+					<text class="text">货位调整</text>
+				</view>
+			</uni-grid-item>
+			<uni-grid-item>
+				<view class="moduleItem" @click="toModule('materiaOrder')">
+					<image src="../../images/QRscan.png"></image>
+					<text class="text">领料扫描核对</text>
 				</view>
 			</uni-grid-item>
 		</uni-grid>
@@ -42,6 +60,21 @@
 							url: '../warehousing/order'
 						})
 						break
+					case 'inventory':
+						uni.navigateTo({
+							url: '../locationInventory/index'
+						})
+						break
+					case 'locationAdjustment':
+						uni.navigateTo({
+							url: '../locationAdjustment/index'
+						})
+						break
+					case 'materiaOrder':
+						uni.navigateTo({
+							url: '../materiaOrder/order'
+						})
+						break
 				}
 			}
 		}
@@ -56,6 +89,7 @@
 		height: 100%;
 		display: flex;
 		flex-direction: column;
+		justify-content: space-around;
 		text-align: center;
 	}
 	.moduleItem text{
