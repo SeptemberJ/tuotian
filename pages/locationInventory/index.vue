@@ -8,9 +8,12 @@
 					<text>物料名称</text>
 					<text>规格</text>
 					<text>单位</text>
+					<text>仓库名称</text>
+					<text>货位名称</text>
 					<text>账目库存</text>
 					<text>盘点数量</text>
 					<text>备注</text>
+					<text>操作</text>
 				</view>
 			</view>
 			<view class="orderWrap">
@@ -21,9 +24,12 @@
 						<text>{{ order.FName }}</text>
 						<text>{{ order.FModel }}</text>
 						<text>{{ order.FUnit }}</text>
+						<text>{{ order.FStock }}</text>
+						<text>{{ order.FSP }}</text>
 						<text>{{ order.FQty }}</text>
-						<text><input class="uni-input" type="number" v-model="order.FAuxQty" /></text>
+						<text><input :class="{'uni-input': true, 'colorRed': order.FAuxQty != order.FQty}" type="number" v-model="order.FAuxQty" /></text>
 						<text><input class="uni-input" type="text" v-model="order.FNote" /></text>
+						<text><button type="primary" @click="remove(idx)" style="width:70px;float:right;line-height: 30px;background: #FF0000;">删除</button></text>
 					</view>
 				</view>
 			</view>
@@ -53,6 +59,9 @@
 			// this.orderList = []
 		},
 		methods: {
+			remove (idx) {
+				this.orderList.splice(idx, 1)
+			},
 			scan () {
 				// let result = '007[K4-4'
 				// let FStock = result.split('[')[0]
@@ -74,7 +83,7 @@
 				// 		} else {
 				// 			this.orderList = res.data.map(item => {
 				// 				item.FAuxQtyMust = item.FQty
-				// 				item.FAuxQty = ''
+				// 				item.FAuxQty = item.FQty
 				// 				item.FNote = ''
 				// 				item.FStock = FStock
 				// 				item.FSP = FSP
@@ -181,7 +190,7 @@
 		background: #1196DB;
 	}
 	.tabBar{
-		width: 945px;
+		width: 1345px;
 		height: 45px;
 		display: flex;
 		align-items: center;
@@ -210,8 +219,17 @@
 	.tabBar text:nth-of-type(7) {
 		width: 100px;
 	}
+	.tabBar text:nth-of-type(9) {
+		width: 100px;
+	}
+	/* .tabBar text:nth-of-type(10) {
+		width: 100px;
+	} */
+	.tabBar text:nth-of-type(11) {
+		width: 100px;
+	}
 	.orderWrap{
-		width: 945px;
+		min-width: 1345px;
 		height: calc(100vh - 45px - 80px);
 		overflow: scroll;
 	}
@@ -245,6 +263,15 @@
 	.order text:nth-of-type(7) {
 		width: 100px;
 	}
+	.order text:nth-of-type(9) {
+		width: 100px;
+	}
+	/* .order text:nth-of-type(10) {
+		width: 100px;
+	} */
+	.order text:nth-of-type(11) {
+		width: 100px;
+	}
 	.dotScan {
 		width: 50px;
 		height: 50px;
@@ -268,5 +295,8 @@
 		background: #FF0000;
 		border: 0;
 		border-radius: 0;
+	}
+	.colorRed{
+		color: #FF0000;
 	}
 </style>

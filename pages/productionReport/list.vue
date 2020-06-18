@@ -15,15 +15,27 @@
 			</view>
 		</view>
 		<view class="submitBlock">
-			<button class="submitBt" :loading="loading" @click="submit">提 交</button>
+			<button class="submitBt" @click="submit">提 交</button>
 		</view>
 		<movable-area style="width: 100%;height: calc(100vh - 45px);position: absolute;top: 45px;">
 			<movable-view :x="x" :y="y" direction="all" @click="scan" @change="onChange" class="dotScan">扫 码</movable-view>
 		</movable-area>
+		<uni-popup ref="popup" type="dialog" message="提示" :maskClick="false" style="z-index:999">
+			<view style="width: 300px;height:135px;display:flex;flex-direction: column;background: #fff;position: relative;z-index:9999;border-radius: 15px;overflow: hidden;">
+				<text style="width: 90%;height: 30px;margin:10px auto;display: block;line-height: 30px;">提示</text>
+				<input class="uni-input" v-model="FPack" focus placeholder="请输入打包号" style="padding: 0 10px;"/>
+				<view style="width: 100%;height: 30px;margin-top: 20px;display: block;">
+					<button type="default" @click="close" style="width: 50%;float: left;border:0;">取消</button>
+					<button type="warn" :loading="loading" @click="confirm" style="width: 50%;border: 0;">提交</button>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
 <script>
+	import uniPopup from '@/components/uni-popup/uni-popup.vue'
+	import uniPopupDialog from '@/components/uni-popup/uni-popup-dialog.vue'
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
 	export default {
@@ -32,13 +44,21 @@
 				loading: false,
 				x: 0,
 				y: 200,
+				FPack: '',
 				orderList: []
 			}
+		},
+		components: {
+			uniPopup,
+			uniPopupDialog
 		},
 		onShow () {
 			// this.orderList = []
 		},
 		methods: {
+			close () {
+				this.$refs.popup.close()
+			},
 			scan () {
 				// var tmpData = "<FSQL>select * from Z_ICMO where FBillNo='" + 'WORK-212709' + "'</FSQL>"
 				// uni.request({
@@ -101,11 +121,29 @@
 				})
 			},
 			submit () {
+				this.$refs.popup.open()
+			},
+			confirm () {
+				if (this.orderList.length == 0) {
+					uni.showModal({
+						content: '请先扫码录入订单!',
+						showCancel: false
+					})
+					return false
+				}
+				if (!this.FPack) {
+					uni.showModal({
+						content: '请输入打包号!',
+						showCancel: false
+					})
+					return false
+				}
 				let data = this.orderList.map(item => {
 					return {
 						FBillNO: item.FBillNo,
 						FAuxQty: item.FAuxQty,
-						FStockID: item.FStockID
+						FStockID: item.FStockID,
+						FPack: this.FPack
 					}
 				})
 				console.log(data)
@@ -126,6 +164,7 @@
 								mask: true,
 								duration: 1500
 							})
+							this.$refs.popup.close()
 							this.orderList = []
 						} else {
 							uni.showModal({

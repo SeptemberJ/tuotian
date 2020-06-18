@@ -67,7 +67,7 @@
 		<view style="clear: both;"></view>
 		<!-- <button type="primary" @click="scan" style="width:150px; margin:30px auto;">扫码</button> -->
 		<view class="operationBar">
-			<button type="secondary" @click="save(false)" :loading="loadingZC" style="border: 2px solid darkorange;color: darkorange;background: #fff;">暂存</button>
+			<!-- <button type="secondary" @click="save(false)" :loading="loadingZC" style="border: 2px solid darkorange;color: darkorange;background: #fff;">暂存</button> -->
 			<button type="primary" @click="scan" style="width:100px;">扫码</button>
 			<button type="warn" @click="submit" :loading="loading" style="border: 2px solid darkorange;background: darkorange;color: #fff;">提交</button>
 		</view>
@@ -140,7 +140,7 @@
 			this.FInterID = order.FInterID
 			this.FEntryID = order.FEntryID
 			// this.lineData.push({...order, ...{FAuxqtyMust: order.FAuxQty, FAuxqty: '', FStock: '', FSP: ''}})
-			this.getDetail(order.FInterID, order.FEntryID)
+			// this.getDetail(order.FInterID, order.FEntryID)
 		},
 		methods: {
 			// 查看库存信息
@@ -336,14 +336,14 @@
 				})
 			},
 			async submit () {
-				let result = await this.save(true)
-				if (result == 0) {
-					uni.showModal({
-						content: '暂存失败!',
-						showCancel: false
-					});
-					return false
-				}
+				// let result = await this.save(true)
+				// if (result == 0) {
+				// 	uni.showModal({
+				// 		content: '暂存失败!',
+				// 		showCancel: false
+				// 	});
+				// 	return false
+				// }
 				if (this.cumulative < this.FAuxqtyMust) {
 					uni.showModal({
 						content: '累计实收数量应该等于应收数量!',
@@ -352,8 +352,11 @@
 					return false
 				}
 				this.loading = true
+				// var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
+				// 	tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
 				var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
 					tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
+					tmpData += '<FJson>' + JSON.stringify({items: this.lineData}) + '</FJson>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',

@@ -32,13 +32,15 @@
 					<text>{{ item.FName}}</text>
 					<text>{{ item.FModel}}</text>
 					<text>{{ item.FAuxQty}}</text>
-					<text v-if="item.FSign == 'Y'">{{ item.FSign}}</text>
-					<button v-if="item.FSign != 'Y'" type="primary" @click="scan(idx)" style="width:80px;margin:5px 0;line-height: 30px;">扫码</button>
+					<text>{{ item.FSign}}</text>
 				</view>
 			</scroll-view>
 		</view>
 		<view style="clear: both;"></view>
 		<button class="submitBt" :loading="loading" @click="submit">提 交</button>
+		<movable-area style="width: 100%;height: calc(100vh - 45px);position: absolute;top: 45px;">
+			<movable-view :x="x" :y="y" direction="all" @click="scan"  class="dotScan">扫 码</movable-view>
+		</movable-area>
 	</view>
 </template>
 
@@ -51,6 +53,8 @@
 			return {
 				order: {},
 				lineData: [],
+				x: 0,
+				y: 200,
 				loading: false,
 			}
 		},
@@ -63,7 +67,7 @@
 			this.getLineData(order.FICMOBillNo, order.FBillNo)
 		},
 		methods: {
-			scan (idx) {
+			scan () {
 				// let FNumber = '1.02.1.26795-08-08LTZ'
 				// var tmpData = '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
 				// 	tmpData += '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
@@ -77,12 +81,13 @@
 				// 	},
 				// 	success: (res) => {
 				// 		if (res.data[0].code == '1') {
-				// 			this.lineData[idx].FSign = 'Y'
+				// 			this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
 				// 		} else {
 				// 			uni.showModal({
 				// 				content: '不存在此物料',
 				// 				showCancel: false
-				// 			});
+				// 			})
+				// 			this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
 				// 		}
 				// 	},
 				// 	fail: (err) => {
@@ -96,7 +101,6 @@
 				uni.scanCode({
 				    onlyFromCamera: false,
 				    success: (res) => {
-						console.log(res.result)
 						var tmpData = '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
 							tmpData += '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
 							tmpData += '<FNumber>' + res.result + '</FNumber>'
@@ -109,7 +113,7 @@
 							},
 							success: (res) => {
 								if (res.data[0].code == '1') {
-									this.lineData[idx].FSign = 'Y'
+									this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
 								} else {
 									uni.showModal({
 										content: '不存在此物料',
@@ -243,6 +247,8 @@
 		text-align: right;
 	}
 	.lineData{
+		position: relative;
+		z-index: 998;
 	}
 	.columnTitWrap{
 		background: #C0C0C0;
@@ -292,6 +298,17 @@
 	}
 	.lineItem text:nth-of-type(6){
 		width: 100px;
+	}
+	.dotScan {
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+		background: #1196DB;
+		font-size: 14px;
+		color: #ffffff;
+		text-align: center;
+		line-height: 50px;
+		z-index: 999;
 	}
 	.submitBt{
 		width: 100%;

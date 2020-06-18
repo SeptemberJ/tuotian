@@ -97,24 +97,24 @@
 					})
 					return false
 				}
-				let data = {
-					items: [{
-						FBillNO: this.FBillNo,
-						FAuxQty: this.number,
-						FStockID: this.wareId
-					}]
-				}
+				// let data = {
+				// 	items: [{
+				// 		FBillNO: this.FBillNo,
+				// 		FAuxQty: this.number,
+				// 		FStockID: this.wareId
+				// 	}]
+				// }
 				this.loading = true
-				var tmpData = '<FJSON>' + JSON.stringify(data) + '</FJSON>'
-				// var tmpData = '<FBillNO>' + this.FBillNo + '</FBillNO>'
-				// 	tmpData += '<FAuxQty>' + this.number + '</FAuxQty>'
-				// 	tmpData += '<FStockID>' + this.wareId + '</FStockID>'
+				// var tmpData = '<FJSON>' + JSON.stringify(data) + '</FJSON>'
+				var tmpData = '<FBillNO><![CDATA[' + this.FBillNo + ']]></FBillNO>'
+					tmpData += '<FAuxQty><![CDATA[' + this.number + ']]></FAuxQty>'
+					tmpData += '<FStockID><![CDATA[' + this.wareId + ']]></FStockID>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
-					data: combineRequsetData('ICMO', tmpData),
+					data: combineRequsetData('save', tmpData),
 					header:{
-						'Content-Type':'text/xml'
+						'Content-Type':'text/xml;charset=utf-8'
 					},
 					success: (res) => {
 						if (res.data[0].code == 1) {

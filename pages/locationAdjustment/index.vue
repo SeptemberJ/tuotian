@@ -7,12 +7,14 @@
 					<text>物料代码</text>
 					<text>物料名称</text>
 					<text>规格</text>
+					<text>单位</text>
 					<text>调出仓库</text>
 					<text>调出货位</text>
 					<text>调出数量</text>
 					<text>调入仓库</text>
 					<text>调入货位</text>
 					<text>调入数量</text>
+					<text>操作</text>
 				</view>
 			</view>
 			<view class="orderWrap">
@@ -22,12 +24,14 @@
 						<text>{{ order.FNUMBER }}</text>
 						<text>{{ order.FName }}</text>
 						<text>{{ order.FModel }}</text>
+						<text>{{ order.FUnit }}</text>
 						<text>{{ order.FStockNumber }}</text>
 						<text>{{ order.FSP }}</text>
 						<text>{{ order.FQty }}</text>
 						<text>{{ order.FDCStock }}</text>
 						<text>{{ order.FDCSP }}</text>
 						<text>{{ order.FQty }}</text>
+						<text><button type="primary" @click="remove(idx)" style="width:70px;float: right;line-height: 30px;background: #FF0000;">移除</button></text>
 					</view>
 				</view>
 			</view>
@@ -60,74 +64,77 @@
 			// this.orderList = []
 		},
 		methods: {
+			remove (idx) {
+				this.orderList.splice(idx, 1)
+			},
 			scanMateriel () {
-				// let FNUMBER = '1.02.3.H1094562202L'
-				// var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel from Z_ICInventory WHERE FNUMBER='" + FNUMBER + "'</FSQL>"
-				// uni.request({
-				// 	url: mainUrl,
-				// 	method: 'POST',
-				// 	data: combineRequsetData('JA_LIST', tmpData),
-				// 	header:{
-				// 		'Content-Type':'text/xml'
-				// 	},
-				// 	success: (res) => {
-				// 		if (res.data.length == 0) {
-				// 			uni.showModal({
-				// 				content: '无该物料信息！',
-				// 				showCancel: false
-				// 			});
-				// 		} else {
-				// 			this.orderList = res.data.map(item => {
-				// 				item.FAuxqty = item.FQty
-				// 				item.FSCStock = item.FStockNumber
-				// 				item.FSCSP = item.FSP
-				// 				item.FDCStock = ''
-				// 				item.FDCSP = ''
-				// 				return item
-				// 			})
-				// 		}
-				// 	},
-				// 	fail: (err) => {
-				// 		console.log('request fail', err)
-				// 	}
-				// })
-				uni.scanCode({
-				    onlyFromCamera: false,
-				    success: (res) => {
-						var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel from Z_ICInventory WHERE FNUMBER='" + res.result + "'</FSQL>"
-						uni.request({
-							url: mainUrl,
-							method: 'POST',
-							data: combineRequsetData('JA_LIST', tmpData),
-							header:{
-								'Content-Type':'text/xml'
-							},
-							success: (res) => {
-								if (res.data.length == 0) {
-									uni.showModal({
-										content: '无该物料信息！',
-										showCancel: false
-									});
-								} else {
-									this.orderList = res.data.map(item => {
-										item.FAuxqty = item.FQty
-										item.FSCStock = item.FStockNumber
-										item.FSCSP = item.FSP
-										item.FDCStock = ''
-										item.FDCSP = ''
-										return item
-									})
-								}
-							},
-							fail: (err) => {
-								console.log('request fail', err)
-							}
-						})
+				let FNUMBER = '3.02.4120005119'
+				var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel,FUnit from Z_ICInventory WHERE FNUMBER='" + FNUMBER + "'</FSQL>"
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('JA_LIST', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						if (res.data.length == 0) {
+							uni.showModal({
+								content: '无该物料信息！',
+								showCancel: false
+							});
+						} else {
+							this.orderList = res.data.map(item => {
+								item.FAuxqty = item.FQty
+								item.FSCStock = item.FStockNumber
+								item.FSCSP = item.FSP
+								item.FDCStock = ''
+								item.FDCSP = ''
+								return item
+							})
+						}
 					},
 					fail: (err) => {
-						console.log(err)
+						console.log('request fail', err)
 					}
 				})
+				// uni.scanCode({
+				//     onlyFromCamera: false,
+				//     success: (res) => {
+				// 		var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel from Z_ICInventory WHERE FNUMBER='" + res.result + "'</FSQL>"
+				// 		uni.request({
+				// 			url: mainUrl,
+				// 			method: 'POST',
+				// 			data: combineRequsetData('JA_LIST', tmpData),
+				// 			header:{
+				// 				'Content-Type':'text/xml'
+				// 			},
+				// 			success: (res) => {
+				// 				if (res.data.length == 0) {
+				// 					uni.showModal({
+				// 						content: '无该物料信息！',
+				// 						showCancel: false
+				// 					});
+				// 				} else {
+				// 					this.orderList = res.data.map(item => {
+				// 						item.FAuxqty = item.FQty
+				// 						item.FSCStock = item.FStockNumber
+				// 						item.FSCSP = item.FSP
+				// 						item.FDCStock = ''
+				// 						item.FDCSP = ''
+				// 						return item
+				// 					})
+				// 				}
+				// 			},
+				// 			fail: (err) => {
+				// 				console.log('request fail', err)
+				// 			}
+				// 		})
+				// 	},
+				// 	fail: (err) => {
+				// 		console.log(err)
+				// 	}
+				// })
 			},
 			scanStock (order) {
 				// let result = '002[B1-4'
@@ -202,7 +209,7 @@
 		background: #1196DB;
 	}
 	.tabBar{
-		width: 1145px;
+		width: 1700px;
 		height: 45px;
 		display: flex;
 		align-items: center;
@@ -222,8 +229,11 @@
 	.tabBar text:nth-of-type(1) {
 		width: 45px;
 	}
+	.tabBar text:nth-of-type(4) {
+		width: 550px;
+	}
 	.tabBar text:nth-of-type(5) {
-		width: 100px;
+		width: 55px;
 	}
 	.tabBar text:nth-of-type(7) {
 		width: 100px;
@@ -237,8 +247,14 @@
 	.tabBar text:nth-of-type(10) {
 		width: 100px;
 	}
+	.tabBar text:nth-of-type(11) {
+		width: 100px;
+	}
+	.tabBar text:nth-of-type(12) {
+		width: 100px;
+	}
 	.orderWrap{
-		width: 1145px;
+		width: 1700px;
 		height: calc(100vh - 45px - 80px);
 		overflow: scroll;
 	}
@@ -263,8 +279,11 @@
 	.order text:nth-of-type(1) {
 		width: 45px;
 	}
+	.order text:nth-of-type(4) {
+		width: 550px;
+	}
 	.order text:nth-of-type(5) {
-		width: 100px;
+		width: 55px;
 	}
 	.order text:nth-of-type(7) {
 		width: 100px;
@@ -278,12 +297,18 @@
 	.order text:nth-of-type(10) {
 		width: 100px;
 	}
+	.order text:nth-of-type(11) {
+		width: 100px;
+	}
+	.order text:nth-of-type(12) {
+		width: 100px;
+	}
 	.dotScan {
 		width: 50px;
 		height: 50px;
 		border-radius: 50%;
 		background: #1196DB;
-		font-size: 14px;
+		font-size: 12px;
 		color: #ffffff;
 		z-index: 999;
 		display: flex;
