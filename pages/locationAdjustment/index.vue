@@ -49,6 +49,8 @@
 <script>
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
+	import {  mapState,  mapMutations } from 'vuex'
+	
 	export default {
 		data() {
 			return {
@@ -60,6 +62,9 @@
 				orderList: []
 			}
 		},
+		computed: {
+			...mapState(['fuserno'])  
+		},
 		onShow () {
 			// this.orderList = []
 		},
@@ -68,73 +73,73 @@
 				this.orderList.splice(idx, 1)
 			},
 			scanMateriel () {
-				let FNUMBER = '3.02.4120005119'
-				var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel,FUnit from Z_ICInventory WHERE FNUMBER='" + FNUMBER + "'</FSQL>"
-				uni.request({
-					url: mainUrl,
-					method: 'POST',
-					data: combineRequsetData('JA_LIST', tmpData),
-					header:{
-						'Content-Type':'text/xml'
-					},
-					success: (res) => {
-						if (res.data.length == 0) {
-							uni.showModal({
-								content: '无该物料信息！',
-								showCancel: false
-							});
-						} else {
-							this.orderList = res.data.map(item => {
-								item.FAuxqty = item.FQty
-								item.FSCStock = item.FStockNumber
-								item.FSCSP = item.FSP
-								item.FDCStock = ''
-								item.FDCSP = ''
-								return item
-							})
-						}
-					},
-					fail: (err) => {
-						console.log('request fail', err)
-					}
-				})
-				// uni.scanCode({
-				//     onlyFromCamera: false,
-				//     success: (res) => {
-				// 		var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel from Z_ICInventory WHERE FNUMBER='" + res.result + "'</FSQL>"
-				// 		uni.request({
-				// 			url: mainUrl,
-				// 			method: 'POST',
-				// 			data: combineRequsetData('JA_LIST', tmpData),
-				// 			header:{
-				// 				'Content-Type':'text/xml'
-				// 			},
-				// 			success: (res) => {
-				// 				if (res.data.length == 0) {
-				// 					uni.showModal({
-				// 						content: '无该物料信息！',
-				// 						showCancel: false
-				// 					});
-				// 				} else {
-				// 					this.orderList = res.data.map(item => {
-				// 						item.FAuxqty = item.FQty
-				// 						item.FSCStock = item.FStockNumber
-				// 						item.FSCSP = item.FSP
-				// 						item.FDCStock = ''
-				// 						item.FDCSP = ''
-				// 						return item
-				// 					})
-				// 				}
-				// 			},
-				// 			fail: (err) => {
-				// 				console.log('request fail', err)
-				// 			}
-				// 		})
+				// let FNUMBER = '3.02.4120005119'
+				// var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel,FUnit from Z_ICInventory WHERE FNUMBER='" + FNUMBER + "'</FSQL>"
+				// uni.request({
+				// 	url: mainUrl,
+				// 	method: 'POST',
+				// 	data: combineRequsetData('JA_LIST', tmpData),
+				// 	header:{
+				// 		'Content-Type':'text/xml'
+				// 	},
+				// 	success: (res) => {
+				// 		if (res.data.length == 0) {
+				// 			uni.showModal({
+				// 				content: '无该物料信息！',
+				// 				showCancel: false
+				// 			});
+				// 		} else {
+				// 			this.orderList = res.data.map(item => {
+				// 				item.FAuxqty = item.FQty
+				// 				item.FSCStock = item.FStockNumber
+				// 				item.FSCSP = item.FSP
+				// 				item.FDCStock = ''
+				// 				item.FDCSP = ''
+				// 				return item
+				// 			})
+				// 		}
 				// 	},
 				// 	fail: (err) => {
-				// 		console.log(err)
+				// 		console.log('request fail', err)
 				// 	}
 				// })
+				uni.scanCode({
+				    onlyFromCamera: false,
+				    success: (res) => {
+						var tmpData = "<FSQL>select FStockNumber,FSP,FQty,FItemID,FNUMBER,FName,FModel,FUnit from Z_ICInventory WHERE FNUMBER='" + res.result + "'</FSQL>"
+						uni.request({
+							url: mainUrl,
+							method: 'POST',
+							data: combineRequsetData('JA_LIST', tmpData),
+							header:{
+								'Content-Type':'text/xml'
+							},
+							success: (res) => {
+								if (res.data.length == 0) {
+									uni.showModal({
+										content: '无该物料信息！',
+										showCancel: false
+									});
+								} else {
+									this.orderList = res.data.map(item => {
+										item.FAuxqty = item.FQty
+										item.FSCStock = item.FStockNumber
+										item.FSCSP = item.FSP
+										item.FDCStock = ''
+										item.FDCSP = ''
+										return item
+									})
+								}
+							},
+							fail: (err) => {
+								console.log('request fail', err)
+							}
+						})
+					},
+					fail: (err) => {
+						console.log(err)
+					}
+				})
 			},
 			scanStock (order) {
 				// let result = '002[B1-4'
@@ -163,6 +168,7 @@
 			submit () {
 				this.loading = true
 				var tmpData = '<FJson><![CDATA[' + JSON.stringify({items: this.orderList}) + ']]></FJson>'
+					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',

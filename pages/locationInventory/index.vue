@@ -46,6 +46,8 @@
 <script>
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
+	import {  mapState,  mapMutations } from 'vuex'
+	
 	export default {
 		data() {
 			return {
@@ -54,6 +56,9 @@
 				y: 200,
 				orderList: []
 			}
+		},
+		computed: {
+			...mapState(['fuserno'])  
 		},
 		onShow () {
 			// this.orderList = []
@@ -118,7 +123,7 @@
 								} else {
 									this.orderList = res.data.map(item => {
 										item.FAuxQtyMust = item.FQty
-										item.FAuxQty = ''
+										item.FAuxQty = item.FQty
 										item.FNote = ''
 										item.FStock = FStock
 										item.FSP = FSP
@@ -144,6 +149,7 @@
 			submit () {
 				this.loading = true
 				var tmpData = '<FJson><![CDATA[' + JSON.stringify({items: this.orderList}) + ']]></FJson>'
+					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',

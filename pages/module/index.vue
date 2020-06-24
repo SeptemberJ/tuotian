@@ -41,36 +41,83 @@
 	export default {
 		data() {
 			return {
+				F1: 0,
+				F2: 0,
+				F3: 0,
+				F4: 0,
+				F5: 0
 			}
 		},
 		components: {
 			uniGrid,
 			uniGridItem
 		},
+		onLoad(options) {
+			this.F1 = options.F1
+			this.F2 = options.F2
+			this.F3 = options.F3
+			this.F4 = options.F4
+			this.F5 = options.F5
+		},
 		methods: {
 			toModule(kind) {
 				switch (kind) {
 					case 'productionReport':
+						if (this.F1 == 0) {
+							uni.showModal({
+								content: '对不起，您没有该模块的操作权限！',
+								showCancel: false
+							})
+							return false
+						}
 						uni.navigateTo({
 							url: '../productionReport/list'
 						})
 						break
 					case 'warehousing':
+						if (this.F2 == 0) {
+							uni.showModal({
+								content: '对不起，您没有该模块的操作权限！',
+								showCancel: false
+							})
+							return false
+						}
 						uni.navigateTo({
 							url: '../warehousing/order'
 						})
 						break
 					case 'inventory':
+						if (this.F3 == 0) {
+							uni.showModal({
+								content: '对不起，您没有该模块的操作权限！',
+								showCancel: false
+							})
+							return false
+						}
 						uni.navigateTo({
 							url: '../locationInventory/index'
 						})
 						break
 					case 'locationAdjustment':
+						if (this.F4 == 0) {
+							uni.showModal({
+								content: '对不起，您没有该模块的操作权限！',
+								showCancel: false
+							})
+							return false
+						}
 						uni.navigateTo({
 							url: '../locationAdjustment/index'
 						})
 						break
 					case 'materiaOrder':
+						if (this.F5 == 0) {
+							uni.showModal({
+								content: '对不起，您没有该模块的操作权限！',
+								showCancel: false
+							})
+							return false
+						}
 						uni.navigateTo({
 							url: '../materiaOrder/order'
 						})

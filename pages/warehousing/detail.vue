@@ -97,6 +97,8 @@
 	import uniPopup from '@/components/uni-popup/uni-popup.vue'
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
+	import {  mapState,  mapMutations } from 'vuex'
+	
 	export default {
 		data() {
 			return {
@@ -123,6 +125,9 @@
 		},
 		components: {
 			uniPopup
+		},
+		computed: {
+			...mapState(['fuserno'])  
 		},
 		onLoad(options) {
 			let order = JSON.parse(options.order)
@@ -356,7 +361,8 @@
 				// 	tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
 				var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
 					tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
-					tmpData += '<FJson>' + JSON.stringify({items: this.lineData}) + '</FJson>'
+					tmpData += '<FJson>' + JSON.stringify({items: this.lineData}) + '</FJson>',
+					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',

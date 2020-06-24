@@ -22,6 +22,7 @@
 						<text>物料代码</text>
 						<text>名称</text>
 						<text>规格</text>
+						<text>单位</text>
 						<text>实发数量</text>
 						<text>校对标记</text>
 					</view>
@@ -31,6 +32,7 @@
 					<text>{{ item.FNumber }}</text>
 					<text>{{ item.FName}}</text>
 					<text>{{ item.FModel}}</text>
+					<text>{{ item.FUnit}}</text>
 					<text>{{ item.FAuxQty}}</text>
 					<text>{{ item.FSign}}</text>
 				</view>
@@ -48,6 +50,8 @@
 	import uniPopup from '@/components/uni-popup/uni-popup.vue'
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
+	import {  mapState,  mapMutations } from 'vuex'
+	
 	export default {
 		data() {
 			return {
@@ -60,6 +64,9 @@
 		},
 		components: {
 			uniPopup
+		},
+		computed: {
+			...mapState(['fuserno'])  
 		},
 		onLoad(options) {
 			let order = JSON.parse(options.orderInfo)
@@ -150,6 +157,7 @@
 				this.loading = true
 				var tmpData = '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
 					tmpData += '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
+					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -254,7 +262,7 @@
 		background: #C0C0C0;
 	}
 	.columnTit{
-		width: 855px;
+		width: 955px;
 		height: 30px;
 		background: #C0C0C0;
 	}
@@ -276,8 +284,11 @@
 	.columnTit text:nth-of-type(6){
 		width: 100px;
 	}
+	.columnTit text:nth-of-type(7){
+		width: 100px;
+	}
 	.lineItem{
-		min-width: 855px;
+		min-width: 955px;
 		margin-bottom: 10px;
 		display: flex;
 		align-items: center;
@@ -299,6 +310,9 @@
 	.lineItem text:nth-of-type(6){
 		width: 100px;
 	}
+	.lineItem text:nth-of-type(7){
+		width: 100px;
+	}
 	.dotScan {
 		width: 50px;
 		height: 50px;
@@ -315,7 +329,7 @@
 		height: 50px;
 		position: fixed;
 		bottom: 0;
-		z-index: 99;
+		z-index: 999;
 		color: #ffffff;
 		background: #FF0000;
 		border: 0;

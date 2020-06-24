@@ -38,6 +38,7 @@
 	import uniPopupDialog from '@/components/uni-popup/uni-popup-dialog.vue'
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
+	import {  mapState } from 'vuex'
 	export default {
 		data() {
 			return {
@@ -48,12 +49,14 @@
 				orderList: []
 			}
 		},
+		computed: {
+			...mapState(['fuserno'])  
+		},
 		components: {
 			uniPopup,
 			uniPopupDialog
 		},
 		onShow () {
-			// this.orderList = []
 		},
 		methods: {
 			close () {
@@ -146,9 +149,9 @@
 						FPack: this.FPack
 					}
 				})
-				console.log(data)
 				this.loading = true
 				var tmpData = '<FJSON>' + JSON.stringify({items: data}) + '</FJSON>'
+					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
