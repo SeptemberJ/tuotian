@@ -18,36 +18,40 @@
 			<scroll-view scroll-x="true" scroll="scroll">
 				<view class="columnTitWrap">
 					<view class="columnTit">
-						<text>序号</text>
+						<!-- <text>序号</text>
 						<text>物料代码</text>
 						<text>名称</text>
 						<text>规格</text>
 						<text>单位</text>
 						<text>实发数量</text>
+						<text>校对标记</text> -->
 						<text>校对标记</text>
+						<text>规格</text>
+						<text>实发数量</text>
+						<text>物料代码</text>
+						<text>名称</text>
+						<text>单位</text>
 					</view>
 				</view>
 				<view class="lineItem" v-for="(item, idx) in lineData" :key="idx">
-					<text>{{ idx + 1 }}</text>
+					<text>{{ item.FSign}}</text>
+					<text>{{ item.FModel}}</text>
+					<text>{{ item.FAuxQty}}</text>
 					<text>{{ item.FNumber }}</text>
 					<text>{{ item.FName}}</text>
-					<text>{{ item.FModel}}</text>
 					<text>{{ item.FUnit}}</text>
-					<text>{{ item.FAuxQty}}</text>
-					<text>{{ item.FSign}}</text>
 				</view>
 			</scroll-view>
 		</view>
 		<view style="clear: both;"></view>
 		<button class="submitBt" :loading="loading" @click="submit">提 交</button>
-		<movable-area style="width: 100%;height: calc(100vh - 45px);position: absolute;top: 45px;">
-			<movable-view :x="x" :y="y" direction="all" @click="scan"  class="dotScan">扫 码</movable-view>
-		</movable-area>
+		<scan-code></scan-code>
 	</view>
 </template>
 
 <script>
 	import uniPopup from '@/components/uni-popup/uni-popup.vue'
+	import scanCode from "@/components/scan-code/scan-code.vue"
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
 	import {  mapState,  mapMutations } from 'vuex'
@@ -63,7 +67,8 @@
 			}
 		},
 		components: {
-			uniPopup
+			uniPopup,
+			scanCode
 		},
 		computed: {
 			...mapState(['fuserno'])  
@@ -73,7 +78,44 @@
 			this.order = order
 			this.getLineData(order.FICMOBillNo, order.FBillNo)
 		},
+		onShow () {
+			var _this = this
+			uni.$off('scancodedate') // 每次进来先 移除全局自定义事件监听器  
+			uni.$on('scancodedate',(data) => {  
+				_this.broadcastBackInfo(data.code)
+			})
+		},
 		methods: {
+			broadcastBackInfo (result) {
+				var tmpData = '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
+					tmpData += '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
+					tmpData += '<FNumber>' + result + '</FNumber>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('sign', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						if (res.data[0].code == '1') {
+							this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
+						} else {
+							uni.showModal({
+								content: '不存在此物料',
+								showCancel: false
+							})
+						}
+					},
+					fail: (err) => {
+						console.log('request fail', err);
+						uni.showModal({
+							content: err.errMsg,
+							showCancel: false
+						})
+					}
+				})
+			},
 			scan () {
 				// let FNumber = '1.02.1.26795-08-08LTZ'
 				// var tmpData = '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
@@ -256,13 +298,13 @@
 	}
 	.lineData{
 		position: relative;
-		z-index: 998;
+		/* z-index: 998; */
 	}
 	.columnTitWrap{
 		background: #C0C0C0;
 	}
 	.columnTit{
-		width: 955px;
+		width: 840px;
 		height: 30px;
 		background: #C0C0C0;
 	}
@@ -275,20 +317,16 @@
 		font-weight: 400;
 	}
 	.columnTit text:nth-of-type(1){
-		width: 45px;
-		padding-left: 5px;
+		width: 80px;
 	}
-	.columnTit text:nth-of-type(5){
-		width: 100px;
+	.columnTit text:nth-of-type(3){
+		width: 80px;
 	}
 	.columnTit text:nth-of-type(6){
-		width: 100px;
-	}
-	.columnTit text:nth-of-type(7){
-		width: 100px;
+		width: 80px;
 	}
 	.lineItem{
-		min-width: 955px;
+		min-width: 840px;
 		margin-bottom: 10px;
 		display: flex;
 		align-items: center;
@@ -301,17 +339,13 @@
 		font-weight: 400;
 	}
 	.lineItem text:nth-of-type(1){
-		width: 45px;
-		padding-left: 5px;
+		width: 80px;
 	}
-	.lineItem text:nth-of-type(5){
-		width: 100px;
+	.lineItem text:nth-of-type(3){
+		width: 80px;
 	}
 	.lineItem text:nth-of-type(6){
-		width: 100px;
-	}
-	.lineItem text:nth-of-type(7){
-		width: 100px;
+		width: 80px;
 	}
 	.dotScan {
 		width: 50px;

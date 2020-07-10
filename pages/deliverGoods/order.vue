@@ -1,8 +1,8 @@
 <template>
 	<view class="container">
 		<view class="searchBar">
-			<input class="uni-input" v-model="FSupply" placeholder="输入供应商名称" />
-			<input class="uni-input" v-model="FBillNo" placeholder="输入收料单号" />
+			<input class="uni-input" v-model="FCust" placeholder="客户名称" />
+			<input class="uni-input" v-model="FBillNo" placeholder="发货单号" />
 			<button class="searchBt" type="primary" size="mini" @click="search">搜索</button>
 		</view>
 		<view v-if="loading"><uni-loading :height1="100" :loadModal="loading"></uni-loading></view>
@@ -10,18 +10,18 @@
 			<image src="../../static/wushuju.png" style="width: 128px;height: 84px;margin: 0 auto 20px auto;display: block;"></image>
 			<text style="color: #666;">暂无数据</text>
 		</view>
-		<view v-if="!loading && orderList.length > 0" class="dbitem" v-for="order in orderList" @click="toList(order)">
+		<view v-if="!loading && orderList.length > 0" class="dbitem" v-for="order in orderList" @click="toDetail(order)">
 			<view class="itemBar" style="padding-left: 0;border-left: 4px solid #6190e8;margin-bottom: 5px;">
-				<view><text style="padding-left: 6px;">供应商名称：</text></view>
-				<view>{{ order.FSupply}}</view>
+				<view><text style="padding-left: 6px;">客户名称：</text></view>
+				<view>{{ order.FCust }}</view>
 			</view>
 			<view class="itemBar">
-				<view>收料单号：</view>
-				<view>{{ order.FBillNo}}</view>
+				<view>发货单号：</view>
+				<view>{{ order.FBillNo }}</view>
 			</view>
 			<view class="itemBar">
-				<view>收料日期：</view>
-				<view>{{ order.FDate}}</view>
+				<view>发货日期：</view>
+				<view>{{ order.FDate }}</view>
 			</view>
 		</view>
 		<view style="clear: both;"></view>
@@ -40,7 +40,7 @@
 			return {
 				orderList: [],
 				loading: true,
-				FSupply: '',
+				FCust: '',
 				FBillNo: ''
 			}
 		},
@@ -56,13 +56,13 @@
 			search () {
 				this.getList()
 			},
-			toList (order) {
+			toDetail (order) {
 				uni.navigateTo({
-				    url: './list?FInterID=' + order.FInterID
+				    url: './detail?orderInfo=' + JSON.stringify(order)
 				});
 			},
 			getList () {
-				var tmpData = "<FSQL><![CDATA[select distinct FSupply,FBillNo,FDate,FInterID from z_POInStock where FSupply like '%" + this.FSupply + "%' and FBillNo like '%" + this.FBillNo + "%' order by FBillNo]]></FSQL>"
+				var tmpData = "<FSQL><![CDATA[select * from z_SEOutStock where FCust like '%" + this.FCust + "%' and FBillNo like '%" + this.FBillNo + "%']]></FSQL>"
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -71,21 +71,20 @@
 						'Content-Type':'text/xml; charset=utf-8'
 					},
 					success: (res) => {
-						// console.log('res.data', res.data)
 						this.orderList = res.data
 					},
 					fail: (err) => {
-						console.log('request fail', err);
+						console.log('request fail', err)
 						// uni.showModal({
 						// 	content: err.errMsg,
 						// 	showCancel: false
-						// });
+						// })
 					},
 					complete: () => {
-						this.loading = false;
-						uni.stopPullDownRefresh();
+						this.loading = false
+						uni.stopPullDownRefresh()
 					}
-				});
+				})
 			}
 		}
 	}
@@ -114,14 +113,14 @@
 	}
 	.itemBar view:nth-of-type(1){
 		float: left;
-		width: 30%;
+		width: 25%;
 		color: #333333;
 		font-weight: 500;
 		text-align: left;
 	}
 	.itemBar view:nth-of-type(2){
 		float: left;
-		width: 70%;
+		width: 75%;
 		color: #999999;
 		text-align: right;
 	}

@@ -31,6 +31,12 @@
 					<text class="text">领料扫描核对</text>
 				</view>
 			</uni-grid-item>
+			<uni-grid-item>
+				<view class="moduleItem" @click="toModule('deliverGoods')">
+					<image src="../../images/fahuo.png"></image>
+					<text class="text">发货</text>
+				</view>
+			</uni-grid-item>
 		</uni-grid>
 	</view>
 </template>
@@ -45,7 +51,8 @@
 				F2: 0,
 				F3: 0,
 				F4: 0,
-				F5: 0
+				F5: 0,
+				F6: 0
 			}
 		},
 		components: {
@@ -53,11 +60,12 @@
 			uniGridItem
 		},
 		onLoad(options) {
-			this.F1 = options.F1
-			this.F2 = options.F2
-			this.F3 = options.F3
-			this.F4 = options.F4
-			this.F5 = options.F5
+			this.F1 = options.F1 || 0
+			this.F2 = options.F2 || 0
+			this.F3 = options.F3 || 0
+			this.F4 = options.F4 || 0
+			this.F5 = options.F5 || 0
+			this.F6 = options.F6 || 0
 		},
 		methods: {
 			toModule(kind) {
@@ -120,6 +128,18 @@
 						}
 						uni.navigateTo({
 							url: '../materiaOrder/order'
+						})
+						break
+					case 'deliverGoods':
+						if (this.F6 == 0) {
+							uni.showModal({
+								content: '对不起，您没有该模块的操作权限！',
+								showCancel: false
+							})
+							return false
+						}
+						uni.navigateTo({
+							url: '../deliverGoods/order'
 						})
 						break
 				}

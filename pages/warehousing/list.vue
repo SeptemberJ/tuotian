@@ -44,16 +44,19 @@
 			</view>
 		</view>
 		<view style="clear: both;"></view>
+		<scan-code></scan-code>
 	</view>
 </template>
 
 <script>
 	import { combineRequsetData } from '../../utils/util.js'
 	import uniLoading from '@/components/loading/loading.vue'
+	import scanCode from "@/components/scan-code/scan-code.vue"
 	import { mainUrl } from '../../utils/url.js'
 	export default {
 		components: {
-			uniLoading
+			uniLoading,
+			scanCode
 		},
 		data() {
 			return {
@@ -66,6 +69,11 @@
 			this.FInterID = options.FInterID
 		},
 		onShow () {
+			var _this = this
+			uni.$off('scancodedate') // 每次进来先 移除全局自定义事件监听器  
+			uni.$on('scancodedate',(data) => {  
+				_this.broadcastBackInfo(data.code)
+			})
 			this.getList()
 		},
 		onPullDownRefresh() {
@@ -74,6 +82,30 @@
 			this.getList()
 		},
 		methods: {
+			broadcastBackInfo (result) {
+				this.fliterOrder(result)
+			},
+			fliterOrder (FBillNo) {
+				var tmpData = '<FSQL>select * from z_POInStock where FInterID=' + this.FInterID + "and FNumber='" +  FBillNo + "'</FSQL>"
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('JA_LIST', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						this.orderList = res.data
+					},
+					fail: (err) => {
+						console.log('request fail', err)
+					},
+					complete: () => {
+						this.loading = false;
+						uni.stopPullDownRefresh();
+					}
+				})
+			},
 			toDetail (order) {
 				uni.navigateTo({
 				    url: './detail?order=' + JSON.stringify(order)
@@ -89,7 +121,6 @@
 						'Content-Type':'text/xml'
 					},
 					success: (res) => {
-						console.log(res.data)
 						this.orderList = res.data
 					},
 					fail: (err) => {
@@ -103,7 +134,7 @@
 						this.loading = false;
 						uni.stopPullDownRefresh();
 					}
-				});
+				})
 			}
 		}
 	}

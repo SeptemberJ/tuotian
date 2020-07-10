@@ -17,9 +17,7 @@
 		<view class="submitBlock">
 			<button class="submitBt" @click="submit">提 交</button>
 		</view>
-		<movable-area style="width: 100%;height: calc(100vh - 45px);position: absolute;top: 45px;">
-			<movable-view :x="x" :y="y" direction="all" @click="scan" @change="onChange" class="dotScan">扫 码</movable-view>
-		</movable-area>
+		<scan-code></scan-code>
 		<uni-popup ref="popup" type="dialog" message="提示" :maskClick="false" style="z-index:999">
 			<view style="width: 300px;height:135px;display:flex;flex-direction: column;background: #fff;position: relative;z-index:9999;border-radius: 15px;overflow: hidden;">
 				<text style="width: 90%;height: 30px;margin:10px auto;display: block;line-height: 30px;">提示</text>
@@ -36,6 +34,7 @@
 <script>
 	import uniPopup from '@/components/uni-popup/uni-popup.vue'
 	import uniPopupDialog from '@/components/uni-popup/uni-popup-dialog.vue'
+	import scanCode from "@/components/scan-code/scan-code.vue"
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
 	import {  mapState } from 'vuex'
@@ -46,6 +45,7 @@
 				x: 0,
 				y: 200,
 				FPack: '',
+				curResultCode: '',
 				orderList: []
 			}
 		},
@@ -54,13 +54,56 @@
 		},
 		components: {
 			uniPopup,
-			uniPopupDialog
+			uniPopupDialog,
+			scanCode
 		},
 		onShow () {
+			var _this = this
+			uni.$off('scancodedate') // 每次进来先 移除全局自定义事件监听器  
+			uni.$on('scancodedate',(data) => {  
+				_this.result = data.code
+				_this.broadcastBackInfo(data.code)
+			})
 		},
 		methods: {
 			close () {
 				this.$refs.popup.close()
+			},
+			broadcastBackInfo (result) {
+				this.curResultCode = result
+				let ifHas = this.orderList.filter(this.checkRepeat)
+				if (ifHas.length == 0) {
+					var tmpData = "<FSQL>select * from Z_ICMO where FBillNo='" + result + "'</FSQL>"
+					uni.request({
+						url: mainUrl,
+						method: 'POST',
+						data: combineRequsetData('JA_LIST', tmpData),
+						header:{
+							'Content-Type':'text/xml'
+						},
+						success: (res) => {
+							if (res.data.length == 0) {
+								uni.showModal({
+									content: '无该单号信息！',
+									showCancel: false
+								});
+							} else {
+								this.orderList = [...this.orderList, ...res.data]
+							}
+						},
+						fail: (err) => {
+							console.log('request fail', err)
+						}
+					})
+				} else {
+					uni.showModal({
+						content: '该单号信已存在！',
+						showCancel: false
+					})
+				}
+			},
+			checkRepeat (order) {
+				return order.FBillNo == this.curResultCode
 			},
 			scan () {
 				// var tmpData = "<FSQL>select * from Z_ICMO where FBillNo='" + 'WORK-212709' + "'</FSQL>"
@@ -230,6 +273,7 @@
 		display: flex;
 		flex-direction: column;
 		margin-bottom: 70px;
+		float: left;
 	}
 	.order{
 		width: 100%;

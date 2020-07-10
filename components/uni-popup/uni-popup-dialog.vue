@@ -7,6 +7,7 @@
 			<text class="uni-dialog-content-text" v-if="mode === 'base'">{{content}}</text>
 			<input v-else class="uni-dialog-input" v-model="val" type="text" :placeholder="placeholder" :focus="focus" >
 		</view>
+		<slot></slot>
 		<view class="uni-dialog-button-group">
 			<view class="uni-dialog-button" @click="close">
 				<text class="uni-dialog-button-text">取消</text>

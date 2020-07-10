@@ -65,6 +65,18 @@
 			"style": {
 				"navigationBarTitleText": "领料单扫描核对"
 			}
+		},
+		{
+			"path": "pages/deliverGoods/order",
+			"style": {
+				"navigationBarTitleText": "发货单列表"
+			}
+		},
+		{
+			"path": "pages/deliverGoods/detail",
+			"style": {
+				"navigationBarTitleText": "发货单扫描核对"
+			}
 		}
 	],
 	"globalStyle": {

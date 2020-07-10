@@ -41,36 +41,36 @@
 		<view class="lineData">
 			<scroll-view scroll-x="true" scroll="scroll">
 				<view class="columnTit">
-					<text>物料代码</text>
+					<!-- <text>物料代码</text>
 					<text>名称</text>
 					<text>规格</text>
 					<text>单位</text>
-					<text>应收</text>
+					<text>应收</text> -->
 					<text>实收</text>
 					<text>仓库</text>
 					<text>仓位</text>
-					<text>批次</text>
+					<!-- <text>批次</text> -->
 				</view>
 				<view class="lineItem" v-for="(item, idx) in lineData" :key="idx">
-					<text>{{item.FNumber}}</text>
+					<!-- <text>{{item.FNumber}}</text>
 					<text>{{item.FName}}</text>
 					<text>{{item.FModel}}</text>
 					<text>{{item.FUnit}}</text>
-					<text>{{item.FAuxqtyMust}}</text>
-					<text><input class="uni-input" type="number" v-model="item.FAuxqty" @blur="updateNumber($event, idx)"/></text>
+					<text>{{item.FAuxqtyMust}}</text> -->
+					<text><input class="uni-input" type="number" v-model="item.FAuxqty" @blur="updateNumber($event, idx)" style="border-bottom: 1px solid #ccc;" /></text>
 					<text>{{item.FStock}}</text>
 					<text>{{item.FSP}}</text>
-					<text>{{item.FBatchNo}}</text>
+					<!-- <text>{{item.FBatchNo}}</text> -->
 				</view>
 			</scroll-view>
 		</view>
 		<view style="clear: both;"></view>
-		<!-- <button type="primary" @click="scan" style="width:150px; margin:30px auto;">扫码</button> -->
 		<view class="operationBar">
 			<!-- <button type="secondary" @click="save(false)" :loading="loadingZC" style="border: 2px solid darkorange;color: darkorange;background: #fff;">暂存</button> -->
-			<button type="primary" @click="scan" style="width:100px;">扫码</button>
+			<!-- <button type="primary" @click="scan" style="width:100px;">扫码</button> -->
 			<button type="warn" @click="submit" :loading="loading" style="border: 2px solid darkorange;background: darkorange;color: #fff;">提交</button>
 		</view>
+		<scan-code></scan-code>
 		<!-- stocInfo -->
 		<uni-popup ref="popup" type="bottom">
 			<view class="StockBlock">
@@ -95,6 +95,7 @@
 
 <script>
 	import uniPopup from '@/components/uni-popup/uni-popup.vue'
+	import scanCode from "@/components/scan-code/scan-code.vue"
 	import { combineRequsetData } from '../../utils/util.js'
 	import { mainUrl } from '../../utils/url.js'
 	import {  mapState,  mapMutations } from 'vuex'
@@ -124,7 +125,8 @@
 			}
 		},
 		components: {
-			uniPopup
+			uniPopup,
+			scanCode
 		},
 		computed: {
 			...mapState(['fuserno'])  
@@ -146,6 +148,13 @@
 			this.FEntryID = order.FEntryID
 			// this.lineData.push({...order, ...{FAuxqtyMust: order.FAuxQty, FAuxqty: '', FStock: '', FSP: ''}})
 			// this.getDetail(order.FInterID, order.FEntryID)
+		},
+		onShow () {
+			var _this = this
+			uni.$off('scancodedate') // 每次进来先 移除全局自定义事件监听器  
+			uni.$on('scancodedate',(data) => {  
+				_this.broadcastBackInfo(data.code)
+			})
 		},
 		methods: {
 			// 查看库存信息
@@ -172,6 +181,26 @@
 						});
 					}
 				});
+			},
+			broadcastBackInfo (result) {
+				if (this.FAuxqtyMust == this.cumulative) {
+					uni.showModal({
+						content: '累计实收已经达到应收数量',
+						showCancel: false
+					})
+				} else {
+					let resultArr = result.split('[')
+					// console.log(resultArr)
+					if (resultArr[0] && resultArr[1]) {
+						let result = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: resultArr[0], FSP: resultArr[1]}
+						this.checkIfNormalStock(result)
+					} else {
+						uni.showModal({
+							content: '请确认您的二维码!',
+							showCancel: false
+						});
+					}
+				}
 			},
 			scan () {
 				if (this.FAuxqtyMust == this.cumulative) {
@@ -294,13 +323,13 @@
 					}
 					var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
 						tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
-						tmpData += '<FJson>' + JSON.stringify({items: this.lineData}) + '</FJson>'
+						tmpData += '<FJson><![CDATA[' + JSON.stringify({items: this.lineData}) + ']]></FJson>'
 					uni.request({
 						url: mainUrl,
 						method: 'POST',
 						data: combineRequsetData('save', tmpData),
 						header:{
-							'Content-Type':'text/xml'
+							'Content-Type':'text/xml;charset=utf-8'
 						},
 						success: (res) => {
 							switch (res.data[0].code) {
@@ -361,14 +390,14 @@
 				// 	tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
 				var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
 					tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
-					tmpData += '<FJson>' + JSON.stringify({items: this.lineData}) + '</FJson>',
+					tmpData += '<FJson><![CDATA[' + JSON.stringify({items: this.lineData}) + ']]></FJson>',
 					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
 					data: combineRequsetData('check', tmpData),
 					header:{
-						'Content-Type':'text/xml'
+						'Content-Type':'text/xml;charset=utf-8'
 					},
 					success: (res) => {
 						switch (res.data[0].code) {
@@ -465,18 +494,20 @@
 		float: left;
 	}
 	.columnTit{
-		width: 1410px;
+		/* width: 1410px; */
+		width: 100%;
 		height: 30px;
 		background: #C0C0C0;
 	}
 	.columnTit text{
+		width: 32%;
 		height: 30px;
-		padding: 0 10px;
+		padding: 0 2px;
 		line-height: 30px;
 		display: inline-block;
 		font-weight: 400;
 	}
-	.columnTit text:nth-of-type(1){
+	/* .columnTit text:nth-of-type(1){
 		width: 250px;
 	}
 	.columnTit text:nth-of-type(2){
@@ -502,7 +533,7 @@
 	}
 	.columnTit text:nth-of-type(9){
 		width: 150px;
-	}
+	} */
 	.lineItem{
 		width: 1410px;
 		margin-bottom: 10px;
@@ -510,36 +541,10 @@
 		align-items: center;
 	}
 	.lineItem text{
-		padding: 0 10px;
+		width: 32%;
+		padding: 0 2px;
 		display: inline-block;
 		font-weight: 400;
-	}
-	.lineItem text:nth-of-type(1){
-		width: 250px;
-	}
-	.lineItem text:nth-of-type(2){
-		width: 130px;
-	}
-	.lineItem text:nth-of-type(3){
-		width: 220px;
-	}
-	.lineItem text:nth-of-type(4){
-		width: 80px;
-	}
-	.lineItem text:nth-of-type(5){
-		width: 100px;
-	}
-	.lineItem text:nth-of-type(6){
-		width: 100px;
-	}
-	.lineItem text:nth-of-type(7){
-		width: 100px;
-	}
-	.lineItem text:nth-of-type(8){
-		width: 100px;
-	}
-	.lineItem text:nth-of-type(9){
-		width: 150px;
 	}
 	.operationBar{
 		width: 100%;
