@@ -93,29 +93,28 @@
 				this.orderList.splice(idx, 1)
 			},
 			broadcastBackInfo (result) {
-				let FStock = result.split('[')[0]
-				let FSP = result.split('[')[1]
-				var tmpData = "<FSQL>select FNumber,FName,FModel,FUnit,FQty,FItemID from Z_ICInventory WHERE FStockNumber='" +  FStock + "' and FSP='" + FSP + "'</FSQL>"
+				var tmpData = '<FSP>' + result + '</FSP>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
-					data: combineRequsetData('JA_LIST', tmpData),
+					data: combineRequsetData('Select_4043', tmpData),
 					header:{
 						'Content-Type':'text/xml'
 					},
 					success: (res) => {
-						if (res.data.length == 0) {
+						if (res.data.code == 0) {
 							uni.showModal({
-								content: '无该单号信息！',
+								content: '存在未审核的领料单！',
 								showCancel: false
 							});
 						} else {
+							console.log('res.data', res.data)
 							this.orderList = res.data.map(item => {
 								item.FAuxQtyMust = item.FQty
 								item.FAuxQty = item.FQty
 								item.FNote = ''
-								item.FStock = FStock
-								item.FSP = FSP
+								item.FStock = item.FStockNumber
+								item.FSP = result
 								return item
 							})
 						}

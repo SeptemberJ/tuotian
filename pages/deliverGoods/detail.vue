@@ -1,6 +1,6 @@
 <template>
 	<view class="container">
-		<view class="dbitem">
+		<!-- <view class="dbitem">
 			<view class="itemBar">
 				<view>发货单号：</view>
 				<view>{{ order.FBillNo }}</view>
@@ -13,7 +13,7 @@
 				<view>发货日期：</view>
 				<view>{{ order.FDate }}</view>
 			</view>
-		</view>
+		</view> -->
 		<view class="lineData">
 			<scroll-view scroll-x="true" scroll="scroll">
 				<view class="columnTitWrap">
@@ -58,6 +58,14 @@
 						</label>
 					</radio-group>
 					<view v-if="typeIndex == 1" style="margin: 10px 0;">
+						仓库：
+						<view style="display: inline-block;">
+							<picker @change="FStockPickerChange" :value="indexFStock" :range="FStocksOptions" range-key="FName">
+								<view>{{ stockFName }}</view>
+							</picker>
+						</view>
+					</view>
+					<view v-if="typeIndex == 1" style="margin: 10px 0;">
 						仓库仓位码：{{orderNo}}
 					</view>
 				</view>
@@ -80,14 +88,18 @@
 		data() {
 			return {
 				order: {},
+				FInterIDs: [],
 				lineData: [],
+				indexFStock: 0,
 				x: 0,
 				y: 200,
 				loading: false,
 				typeIndex: 0,
 				isScanNo: false, // 是否是提交时候的扫码
+				FStocksOptions: [],
 				typeOptions: [{label: '销售出库', value: '0'}, {label: '调拨单', value: '1'}],
 				orderNo: '请先扫码',
+				stockFName: '请选择', // 选择的仓库名称
 				scanResult: 'wu',
 				ins: 'wu'
 			}
@@ -101,8 +113,9 @@
 			...mapState(['fuserno'])  
 		},
 		onLoad(options) {
-			let order = JSON.parse(options.orderInfo)
-			this.order = order
+			this.FInterIDs = options.FInterIDs.split(',')
+			// let order = JSON.parse(options.orderInfo)
+			// this.order = order
 		},
 		onShow () {
 			var _this = this
@@ -110,7 +123,9 @@
 			uni.$on('scancodedate',(data) => {  
 				_this.broadcastBackInfo(data.code)
 			})
-			this.stockClear(this.order.FBillNo)
+			this.getStockData()
+			this.getLineData()
+			this.stockClear()
 		},
 		methods: {
 			sureChangeType (event) {
@@ -121,6 +136,11 @@
 				this.isScanNo = false
 				this.typeIndex = 0
 				this.orderNo = '请先扫码'
+				this.stockFName == '请选择'
+			},
+			FStockPickerChange (e) {
+				this.stockFName = this.FStocksOptions[e.target.value].FName
+				this.indexFStock = e.target.value
 			},
 			checkSubmit () {
 				let filterArr = this.lineData.filter(this.checkSign)
@@ -166,9 +186,9 @@
 			},
 			confirm (done, value) {
 				if (this.typeIndex == 1) {
-					if (this.orderNo === '请先扫码') {
+					if (this.orderNo === '请先扫码' || this.stockFName == '请选择') {
 						uni.showModal({
-							content: '请先扫码再提交!',
+							content: '请先将仓库或仓位码填写完整!',
 							showCancel: false
 						})
 					} else {
@@ -179,6 +199,119 @@
 				}
 			},
 			broadcastBackInfo (result) {
+				if (this.isScanNo) {
+					this.orderNo = result
+				} else {
+					var tmpData = '<FResult>' + result + '</FResult>'
+					uni.request({
+						url: mainUrl,
+						method: 'POST',
+						data: combineRequsetData('SEOutStock_FSP', tmpData),
+						header:{
+							'Content-Type':'text/xml; charset=utf-8'
+						},
+						success: (res) => {
+							if (res.data[0].code == 0) {
+								// 物料标签 标记的扫码
+								this.mark(result)
+							} else {
+								// 更新仓库仓位
+								this.updateStock(result)
+							}
+						},
+						fail: (err) => {
+							console.log('request fail', err)
+							// uni.showModal({
+							// 	content: err.errMsg,
+							// 	showCancel: false
+							// })
+						},
+						complete: () => {
+						}
+					})
+				}
+			},
+			mark (result) {
+				let FInterIDs = []
+				this.FInterIDs.map(FInterID => {
+					FInterIDs.push({
+						FInterID: FInterID
+					})
+				})
+				var tmpData = '<FJson>' + JSON.stringify({items: FInterIDs}) + '</FJson>'
+					tmpData += '<FNumber>' + result + '</FNumber>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('SEOutStock_Sign', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						if (res.data[0].code == '1') {
+							this.getLineData()
+						} else {
+							uni.showModal({
+								content: '不存在此物料',
+								showCancel: false
+							})
+						}
+					},
+					fail: (err) => {
+						console.log('request fail', err)
+						uni.showModal({
+							content: err.errMsg,
+							showCancel: false
+						})
+					}
+				})
+			},
+			updateStock (result) {
+				let StockData = []
+				this.lineData.map(item => {
+					if (item.FBiao == 'Y' && item.FSP == '') {
+						StockData.push({
+							FStock: item.FStock,
+							FSP: result,
+							FItemID: item.FItemID
+						})
+					}
+				})
+				let FInterIDs = []
+				this.FInterIDs.map(FInterID => {
+					FInterIDs.push({
+						FInterID: FInterID
+					})
+				})
+				var tmpData = '<FJson><![CDATA[' + JSON.stringify({items: StockData}) + ']]></FJson>'
+					tmpData += '<FJsonBT><![CDATA[' + JSON.stringify({items: FInterIDs}) + ']]></FJsonBT>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('SEOutStock_Stock', tmpData),
+					header:{
+						'Content-Type':'text/xml;charset=utf-8'
+					},
+					success: (res) => {
+						if (res.data[0].code == '1') {
+							this.getLineData()
+						} else {
+							uni.showModal({
+								content: '更新仓位信息失败',
+								showCancel: false
+							})
+						}
+					},
+					fail: (err) => {
+						console.log('request fail', err)
+						uni.showModal({
+							content: err.errMsg,
+							showCancel: false
+						})
+					}
+				})
+			},
+			broadcastBackInfo0 (result) {
 				this.scanResult = result
 				if (this.isScanNo) {
 					// 提交的扫码
@@ -237,8 +370,9 @@
 								StockData.push({
 									FStock: FStock,
 									FSP: FSP,
-									FBillNO: item.FBillNo,
 									FEntryID: item.FEntryID
+									// FBillNO: item.FBillNo,
+									// FEntryID: item.FEntryID
 								})
 							}
 						})
@@ -279,16 +413,22 @@
 				this.lineData.map(item => {
 					if (item.FBiao == 'Y') {
 						Data.push({
-							FInterID: item.FEntryID,
-							FEntryID: item.FInterID,
+							FItemID: item.FItemID,
 							FAuxQty: item.FAuxQty
 						})
 					}
 				})
+				let FInterIDs = []
+				this.FInterIDs.map(FInterID => {
+					FInterIDs.push({
+						FInterID: FInterID
+					})
+				})
 				var tmpData = '<FJson><![CDATA[' + JSON.stringify({items: Data}) + ']]></FJson>'
+					tmpData += '<FJsonBT><![CDATA[' + JSON.stringify({items: FInterIDs}) + ']]></FJsonBT>'
 					tmpData += '<FType><![CDATA[' + (this.typeIndex == 0 ? '销售出库' : '调拨单') + ']]></FType>'
-					tmpData += '<FStock><![CDATA[' + (this.typeIndex == 0 ? '' : this.orderNo.split('[')[0]) + ']]></FStock>'
-					tmpData += '<FSP><![CDATA[' + (this.typeIndex == 0 ? '' : this.orderNo.split('[')[1]) + ']]></FSP>'
+					tmpData += '<FStock><![CDATA[' + (this.typeIndex == 0 ? '' : this.stockFName) + ']]></FStock>'
+					tmpData += '<FSP><![CDATA[' + (this.typeIndex == 0 ? '' : this.orderNo) + ']]></FSP>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -326,7 +466,38 @@
 					}
 				})
 			},
-			getLineData (FBillNo) {
+			getLineData () {
+				let FInterIDs = []
+				this.FInterIDs.map(FInterID => {
+					FInterIDs.push({
+						FInterID: FInterID
+					})
+				})
+				var tmpData = '<FJson>' + JSON.stringify({items: FInterIDs}) +'</FJson>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('SEOutStock_Select', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						this.lineData = res.data
+					},
+					fail: (err) => {
+						console.log('request fail', err);
+						// uni.showModal({
+						// 	content: err.errMsg,
+						// 	showCancel: false
+						// });
+					},
+					complete: () => {
+						this.loading = false;
+						uni.stopPullDownRefresh();
+					}
+				})
+			},
+			getLineData0 (FBillNo) {
 				var tmpData = "<FSQL>select * from z_SEOutStockEntry where fbillno='" + FBillNo + "'</FSQL>"
 				uni.request({
 					url: mainUrl,
@@ -349,8 +520,14 @@
 					}
 				})
 			},
-			stockClear (FBillNo) {
-				var tmpData = '<FBillNO>' + FBillNo + '</FBillNO>'
+			stockClear () {
+				let FInterIDs = []
+				this.FInterIDs.map(FInterID => {
+					FInterIDs.push({
+						FInterID: FInterID
+					})
+				})
+				var tmpData = '<FJson>' + JSON.stringify({items: FInterIDs}) + '</FJson>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -375,6 +552,31 @@
 						// })
 					},
 					complete: () => {
+					}
+				})
+			},
+			getStockData () {
+				var tmpData = '<FSQL>select * from Z_Stock</FSQL>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('JA_LIST', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						this.FStocksOptions = res.data
+					},
+					fail: (err) => {
+						console.log('request fail', err);
+						// uni.showModal({
+						// 	content: err.errMsg,
+						// 	showCancel: false
+						// });
+					},
+					complete: () => {
+						this.loading = false;
+						uni.stopPullDownRefresh();
 					}
 				})
 			}

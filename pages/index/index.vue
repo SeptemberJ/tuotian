@@ -27,8 +27,8 @@
 		data() {
 			return {
 				loading: false,
-				account: '',
-				password: '',
+				account: 'maxiaojuan',
+				password: '123456',
 			}
 		},
 		methods: {
@@ -56,7 +56,7 @@
 						if (Info.code == 1) {
 							this.updateUserInfo(this.account)
 							uni.redirectTo({
-								url: '../module/index?F1=' + Info.F1 + '&F2=' + Info.F2 + '&F3=' + Info.F3 + '&F4=' + Info.F4 + '&F5=' + Info.F5 + '&F6=' + Info.F6
+								url: '../module/index?F1=' + Info.F1 + '&F2=' + Info.F2 + '&F3=' + Info.F3 + '&F4=' + Info.F4 + '&F5=' + Info.F5 + '&F6=' + Info.F6 + '&F7=' + Info.F7
 							})
 						} else {
 							uni.showModal({

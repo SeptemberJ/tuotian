@@ -1,12 +1,12 @@
 <template>
 	<view class="container">
 		<uni-grid :column="3">
-		    <uni-grid-item>
+			<uni-grid-item>
 				<view class="moduleItem" @click="toModule('productionReport')">
 					<image src="../../images/pandian.png"></image>
 					<text class="text">生产汇报</text>
 				</view>
-		    </uni-grid-item>
+			</uni-grid-item>
 			<uni-grid-item>
 				<view class="moduleItem" @click="toModule('warehousing')">
 					<image src="../../images/ruku.png"></image>
@@ -37,6 +37,12 @@
 					<text class="text">发货</text>
 				</view>
 			</uni-grid-item>
+			<uni-grid-item>
+				<view class="moduleItem" @click="toModule('stockQuery')">
+					<image src="../../images/wuliaochaxun.png"></image>
+					<text class="text">库存查询</text>
+				</view>
+			</uni-grid-item>
 		</uni-grid>
 	</view>
 </template>
@@ -52,7 +58,8 @@
 				F3: 0,
 				F4: 0,
 				F5: 0,
-				F6: 0
+				F6: 0,
+				F7: 0
 			}
 		},
 		components: {
@@ -66,6 +73,7 @@
 			this.F4 = options.F4 || 0
 			this.F5 = options.F5 || 0
 			this.F6 = options.F6 || 0
+			this.F7 = options.F7 || 0
 		},
 		methods: {
 			toModule(kind) {
@@ -142,6 +150,18 @@
 							url: '../deliverGoods/order'
 						})
 						break
+					case 'stockQuery':
+						if (this.F7 == 0) {
+							uni.showModal({
+								content: '对不起，您没有该模块的操作权限！',
+								showCancel: false
+							})
+							return false
+						}
+						uni.navigateTo({
+							url: '../stockQuery/order'
+						})
+						break
 				}
 			}
 		}
@@ -149,9 +169,9 @@
 </script>
 
 <style>
-	.container {
-	}
-	.moduleItem{
+	.container {}
+
+	.moduleItem {
 		width: 100%;
 		height: 100%;
 		display: flex;
@@ -159,11 +179,13 @@
 		justify-content: space-around;
 		text-align: center;
 	}
-	.moduleItem text{
+
+	.moduleItem text {
 		margin-top: 10px;
 		color: #555555;
 	}
-	image{
+
+	image {
 		width: 55%;
 		height: 55%;
 		margin: 10px auto 0 auto;

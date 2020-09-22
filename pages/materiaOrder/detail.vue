@@ -1,19 +1,5 @@
 <template>
 	<view class="container">
-		<view class="dbitem">
-			<view class="itemBar">
-				<view>工单号：</view>
-				<view>{{ order.FICMOBillNo }}</view>
-			</view>
-			<view class="itemBar">
-				<view>发料日期：</view>
-				<view>{{ order.FDate }}</view>
-			</view>
-			<view class="itemBar">
-				<view>领料单号：</view>
-				<view>{{ order.FBillNo }}</view>
-			</view>
-		</view>
 		<view class="lineData">
 			<scroll-view scroll-x="true" scroll="scroll">
 				<view class="columnTitWrap">
@@ -59,7 +45,7 @@
 	export default {
 		data() {
 			return {
-				order: {},
+				FJson: [],
 				lineData: [],
 				x: 0,
 				y: 200,
@@ -74,9 +60,7 @@
 			...mapState(['fuserno'])  
 		},
 		onLoad(options) {
-			let order = JSON.parse(options.orderInfo)
-			this.order = order
-			this.getLineData(order.FICMOBillNo, order.FBillNo)
+			this.FJson = JSON.parse(options.data)
 		},
 		onShow () {
 			var _this = this
@@ -84,11 +68,11 @@
 			uni.$on('scancodedate',(data) => {  
 				_this.broadcastBackInfo(data.code)
 			})
+			this.getLineData()
 		},
 		methods: {
 			broadcastBackInfo (result) {
-				var tmpData = '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
-					tmpData += '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
+				var tmpData = '<FJson>' + JSON.stringify({items: this.FJson}) + '</FJson>'
 					tmpData += '<FNumber>' + result + '</FNumber>'
 				uni.request({
 					url: mainUrl,
@@ -99,7 +83,7 @@
 					},
 					success: (res) => {
 						if (res.data[0].code == '1') {
-							this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
+							this.getLineData()
 						} else {
 							uni.showModal({
 								content: '不存在此物料',
@@ -116,74 +100,6 @@
 					}
 				})
 			},
-			scan () {
-				// let FNumber = '1.02.1.26795-08-08LTZ'
-				// var tmpData = '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
-				// 	tmpData += '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
-				// 	tmpData += '<FNumber>' + FNumber + '</FNumber>'
-				// uni.request({
-				// 	url: mainUrl,
-				// 	method: 'POST',
-				// 	data: combineRequsetData('sign', tmpData),
-				// 	header:{
-				// 		'Content-Type':'text/xml'
-				// 	},
-				// 	success: (res) => {
-				// 		if (res.data[0].code == '1') {
-				// 			this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
-				// 		} else {
-				// 			uni.showModal({
-				// 				content: '不存在此物料',
-				// 				showCancel: false
-				// 			})
-				// 			this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
-				// 		}
-				// 	},
-				// 	fail: (err) => {
-				// 		console.log('request fail', err);
-				// 		uni.showModal({
-				// 			content: err.errMsg,
-				// 			showCancel: false
-				// 		});
-				// 	}
-				// })
-				uni.scanCode({
-				    onlyFromCamera: false,
-				    success: (res) => {
-						var tmpData = '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
-							tmpData += '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
-							tmpData += '<FNumber>' + res.result + '</FNumber>'
-						uni.request({
-							url: mainUrl,
-							method: 'POST',
-							data: combineRequsetData('sign', tmpData),
-							header:{
-								'Content-Type':'text/xml'
-							},
-							success: (res) => {
-								if (res.data[0].code == '1') {
-									this.getLineData(this.order.FICMOBillNo, this.order.FBillNo)
-								} else {
-									uni.showModal({
-										content: '不存在此物料',
-										showCancel: false
-									});
-								}
-							},
-							fail: (err) => {
-								console.log('request fail', err);
-								uni.showModal({
-									content: err.errMsg,
-									showCancel: false
-								});
-							}
-						})
-				    },
-					fail: (err) => {
-						console.log(err)
-					}
-				})
-			},
 			checkSign (item) {
 				return item.FSign != 'Y'
 			},
@@ -197,8 +113,7 @@
 					return false
 				}
 				this.loading = true
-				var tmpData = '<FBillNo>' + this.order.FBillNo + '</FBillNo>'
-					tmpData += '<FICMOBillNo>' + this.order.FICMOBillNo + '</FICMOBillNo>'
+				var tmpData = '<FJson>' + JSON.stringify({items: this.FJson}) + '</FJson>'
 					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
@@ -238,28 +153,31 @@
 					}
 				})
 			},
-			getLineData (FICMOBillNo, FBillNo) {
-				var tmpData = "<FSQL>select * from Z_ICStockBill_24Detail where FICMOBillNo='" + FICMOBillNo +"' and FBillNo='"+ FBillNo + "'</FSQL>"
+			getLineData () {
+				var tmpData = '<FJson>' + JSON.stringify({items: this.FJson}) +'</FJson>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
-					data: combineRequsetData('JA_LIST', tmpData),
+					data: combineRequsetData('Select_24', tmpData),
 					header:{
 						'Content-Type':'text/xml'
 					},
 					success: (res) => {
-						if (res.data.length > 0) {
-							this.lineData = res.data
-						}
+						console.log('Select_24', res.data)
+						this.lineData = res.data
 					},
 					fail: (err) => {
 						console.log('request fail', err);
-						uni.showModal({
-							content: err.errMsg,
-							showCancel: false
-						});
+						// uni.showModal({
+						// 	content: err.errMsg,
+						// 	showCancel: false
+						// });
+					},
+					complete: () => {
+						this.loading = false;
+						uni.stopPullDownRefresh();
 					}
-				});
+				})
 			}
 		}
 	}

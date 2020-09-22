@@ -4,13 +4,14 @@
 			<input class="uni-input" v-model="FCust" placeholder="客户名称" />
 			<input class="uni-input" v-model="FBillNo" placeholder="发货单号" />
 			<button class="searchBt" type="primary" size="mini" @click="search">搜索</button>
+			<button class="searchBt" type="primary" size="mini" @click="sureCheck">确认</button>
 		</view>
 		<view v-if="loading"><uni-loading :height1="100" :loadModal="loading"></uni-loading></view>
 		<view v-if="!loading && orderList.length == 0" style="text-align: center;background-color: #f5f5f5;padding-top: 40px;">
 			<image src="../../static/wushuju.png" style="width: 128px;height: 84px;margin: 0 auto 20px auto;display: block;"></image>
 			<text style="color: #666;">暂无数据</text>
 		</view>
-		<view v-if="!loading && orderList.length > 0" class="dbitem" v-for="order in orderList" @click="toDetail(order)">
+		<view v-if="!loading && orderList.length > 0" :class="{ dbitem: true, activeBg: order.checked}" v-for="(order, idx) in orderList"  @click="checkedChange(order, idx)">
 			<view class="itemBar" style="padding-left: 0;border-left: 4px solid #6190e8;margin-bottom: 5px;">
 				<view><text style="padding-left: 6px;">客户名称：</text></view>
 				<view>{{ order.FCust }}</view>
@@ -38,30 +39,81 @@
 		},
 		data() {
 			return {
+				checkedFCust: null, // 选中的order的FCust
+				FInterIDs: [], // 选中的FInterID
 				orderList: [],
-				loading: true,
+				loading: false,
 				FCust: '',
 				FBillNo: ''
 			}
 		},
 		onShow () {
-			this.getList()
+			// this.getList()
 		},
 		onPullDownRefresh() {
 			this.loading = true
 			this.orderList = []
 			this.getList()
 		},
+		watch: {
+			FInterIDs: function (val) {
+				if (val.length == 0) {
+					this.checkedFCust = null
+				}
+			}
+		},
 		methods: {
-			search () {
-				this.getList()
+			sureCheck () {
+				if (this.FInterIDs.length == 0) {
+					uni.showModal({
+						content: '请先选择单子!',
+						showCancel: false
+					})
+				} else {
+					this.toDetail(this.FInterIDs)
+				}
 			},
-			toDetail (order) {
+			checkedChange (order, idx) {
+				if (!this.checkedFCust) {
+					this.orderList[idx].checked = true
+					this.FInterIDs.push(order.FInterID)
+					this.checkedFCust = order.FCust
+				} else {
+					if (!order.checked) {
+						if (this.checkedFCust == order.FCust) {
+							this.orderList[idx].checked = !order.checked
+							this.FInterIDs.push(order.FInterID)
+						} else {
+							uni.showModal({
+								content: '所选择单子的客户名称必须一致!',
+								showCancel: false
+							})
+						}
+					} else {
+						// 取消勾选
+						this.orderList[idx].checked = !order.checked
+						let index = this.FInterIDs.indexOf(order.FInterID)
+						this.FInterIDs.splice(index, 1)
+					}
+				}
+			},
+			search () {
+				if (!this.FCust && !this.FBillNo) {
+					uni.showModal({
+						content: '请输入查询的客户名称或发货单号!',
+						showCancel: false
+					})
+				} else {
+					this.getList()
+				}
+			},
+			toDetail (FInterIDs) {
 				uni.navigateTo({
-				    url: './detail?orderInfo=' + JSON.stringify(order)
+				    url: './detail?FInterIDs=' + FInterIDs
 				});
 			},
 			getList () {
+				this.loading = true
 				var tmpData = "<FSQL><![CDATA[select * from z_SEOutStock where FCust like '%" + this.FCust + "%' and FBillNo like '%" + this.FBillNo + "%']]></FSQL>"
 				uni.request({
 					url: mainUrl,
@@ -71,7 +123,11 @@
 						'Content-Type':'text/xml; charset=utf-8'
 					},
 					success: (res) => {
-						this.orderList = res.data
+						console.log('res.data', res.data.length)
+						this.orderList = res.data.map(item => {
+							item.checked = false
+							return item
+						})
 					},
 					fail: (err) => {
 						console.log('request fail', err)
@@ -82,6 +138,8 @@
 					},
 					complete: () => {
 						this.loading = false
+						this.checkedFCust = null
+						this.FInterIDs = []
 						uni.stopPullDownRefresh()
 					}
 				})
@@ -124,6 +182,16 @@
 		color: #999999;
 		text-align: right;
 	}
+	.activeBg{
+		background-color: #6190e8;
+		color: #FFFFFF;
+	}
+	.activeBg .itemBar view:nth-of-type(1){
+		color: #FFFFFF;
+	}
+	.activeBg .itemBar view:nth-of-type(2){
+		color: #FFFFFF;
+	}
 	.searchBar{
 		width: 100%;
 		height: 45px;
@@ -134,7 +202,7 @@
 		margin-bottom: 20px;
 	}
 	.searchBar input{
-		width: 30%;
+		width: 25%;
 		padding: 5px 5px;
 		display: inline-block;
 		border: 1px solid #eee;
@@ -143,6 +211,6 @@
 		font-size: 12px;
 	}
 	.searchBt{
-		margin-left: 20px;
+		margin-left: 10px;
 	}
 </style>

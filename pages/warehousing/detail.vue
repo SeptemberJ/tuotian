@@ -5,14 +5,14 @@
 				<view>供应商名称：</view>
 				<view>{{ FSupply}}</view>
 			</view>
-			<view class="itemBar">
+			<!-- <view class="itemBar">
 				<view>收料单号：</view>
 				<view>{{ FBillNo}}</view>
 			</view>
 			<view class="itemBar">
 				<view>收料日期：</view>
 				<view>{{ FDate}}</view>
-			</view>
+			</view> -->
 			<view class="itemBar" @click="seeStockInfo" style="background: #F5F5F5;">
 				<view>物料代码：</view>
 				<view>{{ FNumber}}</view>
@@ -57,7 +57,7 @@
 					<text>{{item.FModel}}</text>
 					<text>{{item.FUnit}}</text>
 					<text>{{item.FAuxqtyMust}}</text> -->
-					<text><input class="uni-input" type="number" v-model="item.FAuxqty" @blur="updateNumber($event, idx)" style="border-bottom: 1px solid #ccc;" /></text>
+					<text><input class="uni-input" type="number" v-model="item.FAuxqty" @blur="updateNumber($event, idx)" style="width: 100px;border-bottom: 1px solid #ccc;" /></text>
 					<text>{{item.FStock}}</text>
 					<text>{{item.FSP}}</text>
 					<!-- <text>{{item.FBatchNo}}</text> -->
@@ -117,6 +117,7 @@
 				FUnit: '',
 				FAuxQty: '',
 				FBatchNo: '',
+				FInterIDs: [],
 				lineData: [],
 				lineItem: {},
 				loadingZC: false,
@@ -132,6 +133,7 @@
 			...mapState(['fuserno'])  
 		},
 		onLoad(options) {
+			this.FInterIDs = options.FInterIDs.split(',')
 			let order = JSON.parse(options.order)
 			this.orderInfo = order
 			this.FAuxqtyMust = order.FAuxQty
@@ -152,7 +154,7 @@
 		onShow () {
 			var _this = this
 			uni.$off('scancodedate') // 每次进来先 移除全局自定义事件监听器  
-			uni.$on('scancodedate',(data) => {  
+			uni.$on('scancodedate',(data) => {
 				_this.broadcastBackInfo(data.code)
 			})
 		},
@@ -189,17 +191,19 @@
 						showCancel: false
 					})
 				} else {
-					let resultArr = result.split('[')
-					// console.log(resultArr)
-					if (resultArr[0] && resultArr[1]) {
-						let result = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: resultArr[0], FSP: resultArr[1]}
-						this.checkIfNormalStock(result)
-					} else {
-						uni.showModal({
-							content: '请确认您的二维码!',
-							showCancel: false
-						});
-					}
+					let FSP = result
+					let tmpObj = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: this.orderInfo.FStockNumber, FSP: FSP}
+					this.checkIfNormalStock(tmpObj)
+					// if (resultArr[0] && resultArr[1]) {
+					// 	// let result = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: resultArr[0], FSP: resultArr[1]}
+					// 	let result = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: this.orderInfo.FStockNumber, FSP: result}
+					// 	this.checkIfNormalStock(result)
+					// } else {
+					// 	uni.showModal({
+					// 		content: '请确认您的二维码!',
+					// 		showCancel: false
+					// 	});
+					// }
 				}
 			},
 			scan () {
@@ -254,6 +258,9 @@
 								success: (res) => {
 									if (res.confirm) {
 										this.lineData.push({...this.orderInfo, ...result})
+										console.log('lineData', this.lineData)
+										console.log('orderInfo', this.orderInfo)
+										console.log('result', result)
 										this.updateNumber()
 									} else if (res.cancel) {
 									}
@@ -386,12 +393,27 @@
 					return false
 				}
 				this.loading = true
+				let Btou = this.FInterIDs.map(FInterID => {
+					return {FInterID: FInterID}
+				})
+				let Bti = this.lineData.map(item => {
+					return {
+								FItemID: item.FItemID,
+								FAuxQtyMust:item.FAuxqtyMust,
+								FAuxQty: item.FAuxQty,
+								FStock: item.FStock,
+								FSP: item.FSP
+							}
+				})
+				console.log(Bti)
+				console.log(Btou)
 				// var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
 				// 	tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
-				var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
-					tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
-					tmpData += '<FJson><![CDATA[' + JSON.stringify({items: this.lineData}) + ']]></FJson>',
+				var tmpData = '<FJsonBtou><![CDATA[' + JSON.stringify({items: Btou}) + ']]></FJsonBtou>'
+					tmpData += '<FJsonBti><![CDATA[' + JSON.stringify({items: Bti}) + ']]></FJsonBti>'
 					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
+				
+				console.log(tmpData)
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -535,13 +557,15 @@
 		width: 150px;
 	} */
 	.lineItem{
-		width: 1410px;
+		width: 100%;
+		/* width: 1410px; */
 		margin-bottom: 10px;
 		display: flex;
 		align-items: center;
 	}
 	.lineItem text{
 		width: 32%;
+		/* width: 32%; */
 		padding: 0 2px;
 		display: inline-block;
 		font-weight: 400;

@@ -2,16 +2,16 @@
 	<view class="container">
 		<view class="tabBar">
 			<text>序号</text>
-			<text>工单日期</text>
 			<text>工单号</text>
-			<text>产品名称</text>
+			<text>数量</text>
+			<text>产品代码</text>
 		</view>
 		<view class="orderList">
 			<view class="order" v-for="(order, idx) in orderList" :key="idx" @click="toDetail(order)">
 				<text>{{ idx + 1 }}</text>
-				<text>{{ order.FDate }}</text>
 				<text>{{ order.FBillNo }}</text>
-				<text>{{ order.FName }}</text>
+				<text>{{ order.FAuxQty }}</text>
+				<text>{{ order.FNumber }}</text>
 			</view>
 		</view>
 		<view class="submitBlock">

@@ -10,14 +10,14 @@
 				<view><text style="padding-left: 6px;">供应商名称：</text></view>
 				<view>{{ order.FSupply}}</view>
 			</view>
-			<view class="itemBar">
+			<!-- <view class="itemBar">
 				<view>收料单号：</view>
 				<view>{{ order.FBillNo}}</view>
 			</view>
 			<view class="itemBar">
 				<view>收料日期：</view>
 				<view>{{ order.FDate}}</view>
-			</view>
+			</view> -->
 			<view class="itemBar">
 				<view>物料代码：</view>
 				<view>{{ order.FNumber}}</view>
@@ -60,20 +60,20 @@
 		},
 		data() {
 			return {
-				FInterID: null,
+				FInterIDs: [],
 				orderList: [],
 				loading: true
 			}
 		},
 		onLoad(options) {
-			this.FInterID = options.FInterID
+			this.FInterIDs = options.FInterIDs.split(',')
 		},
 		onShow () {
 			var _this = this
 			uni.$off('scancodedate') // 每次进来先 移除全局自定义事件监听器  
-			uni.$on('scancodedate',(data) => {  
-				_this.broadcastBackInfo(data.code)
-			})
+			// uni.$on('scancodedate',(data) => {  
+			// 	_this.broadcastBackInfo(data.code)
+			// })
 			this.getList()
 		},
 		onPullDownRefresh() {
@@ -108,10 +108,41 @@
 			},
 			toDetail (order) {
 				uni.navigateTo({
-				    url: './detail?order=' + JSON.stringify(order)
+				    url: './detail?order=' + JSON.stringify(order) + '&FInterIDs=' + this.FInterIDs
 				});
 			},
 			getList () {
+				let FInterIDs = []
+				this.FInterIDs.map(FInterID => {
+					FInterIDs.push({
+						FInterID: FInterID
+					})
+				})
+				var tmpData = '<FJson>' + JSON.stringify({items: FInterIDs}) +'</FJson>'
+				uni.request({
+					url: mainUrl,
+					method: 'POST',
+					data: combineRequsetData('POInStock_Select', tmpData),
+					header:{
+						'Content-Type':'text/xml'
+					},
+					success: (res) => {
+						this.orderList = res.data
+					},
+					fail: (err) => {
+						console.log('request fail', err);
+						// uni.showModal({
+						// 	content: err.errMsg,
+						// 	showCancel: false
+						// });
+					},
+					complete: () => {
+						this.loading = false;
+						uni.stopPullDownRefresh();
+					}
+				})
+			},
+			getList0 () {
 				var tmpData = '<FSQL>select * from z_POInStock where FInterID=' + this.FInterID + '</FSQL>'
 				uni.request({
 					url: mainUrl,

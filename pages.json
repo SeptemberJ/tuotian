@@ -1,6 +1,5 @@
 {
-	"pages": [
-		{
+	"pages": [{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": ""
@@ -76,6 +75,12 @@
 			"path": "pages/deliverGoods/detail",
 			"style": {
 				"navigationBarTitleText": "发货单扫描核对"
+			}
+		},
+		{
+			"path": "pages/stockQuery/order",
+			"style": {
+				"navigationBarTitleText": "库存列表"
 			}
 		}
 	],
