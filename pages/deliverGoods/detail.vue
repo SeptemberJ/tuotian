@@ -100,6 +100,7 @@
 				typeOptions: [{label: '销售出库', value: '0'}, {label: '调拨单', value: '1'}],
 				orderNo: '请先扫码',
 				stockFName: '请选择', // 选择的仓库名称
+				stockFNumber: '', // 选择的仓库代码
 				scanResult: 'wu',
 				ins: 'wu'
 			}
@@ -136,10 +137,12 @@
 				this.isScanNo = false
 				this.typeIndex = 0
 				this.orderNo = '请先扫码'
-				this.stockFName == '请选择'
+				this.stockFName = '请选择'
+				this.stockFNumber = '' 
 			},
 			FStockPickerChange (e) {
 				this.stockFName = this.FStocksOptions[e.target.value].FName
+				this.stockFNumber = this.FStocksOptions[e.target.value].FNumber
 				this.indexFStock = e.target.value
 			},
 			checkSubmit () {
@@ -239,7 +242,7 @@
 					})
 				})
 				var tmpData = '<FJson>' + JSON.stringify({items: FInterIDs}) + '</FJson>'
-					tmpData += '<FNumber>' + result + '</FNumber>'
+					tmpData += '<FNumber><![CDATA[' + result + ']]></FNumber>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -427,8 +430,9 @@
 				var tmpData = '<FJson><![CDATA[' + JSON.stringify({items: Data}) + ']]></FJson>'
 					tmpData += '<FJsonBT><![CDATA[' + JSON.stringify({items: FInterIDs}) + ']]></FJsonBT>'
 					tmpData += '<FType><![CDATA[' + (this.typeIndex == 0 ? '销售出库' : '调拨单') + ']]></FType>'
-					tmpData += '<FStock><![CDATA[' + (this.typeIndex == 0 ? '' : this.stockFName) + ']]></FStock>'
+					tmpData += '<FStock><![CDATA[' + (this.typeIndex == 0 ? '' : this.stockFNumber) + ']]></FStock>'
 					tmpData += '<FSP><![CDATA[' + (this.typeIndex == 0 ? '' : this.orderNo) + ']]></FSP>'
+					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',

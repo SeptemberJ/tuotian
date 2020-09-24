@@ -27,8 +27,8 @@
 		data() {
 			return {
 				loading: false,
-				account: 'maxiaojuan',
-				password: '123456',
+				account: '', // maxiaojuan
+				password: '', // 123456
 			}
 		},
 		methods: {

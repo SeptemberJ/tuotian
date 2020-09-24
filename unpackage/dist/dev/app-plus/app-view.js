@@ -5863,7 +5863,7 @@ var render = function() {
                     { staticClass: _vm._$g(4, "sc"), attrs: { _i: 4 } },
                     [
                       _c("v-uni-text", { attrs: { _i: 5 } }, [
-                        _vm._v("校对标记")
+                        _vm._v("校对标记1")
                       ]),
                       _c("v-uni-text", { attrs: { _i: 6 } }, [_vm._v("规格")]),
                       _c("v-uni-text", { attrs: { _i: 7 } }, [

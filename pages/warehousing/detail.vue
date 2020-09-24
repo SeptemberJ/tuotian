@@ -57,7 +57,7 @@
 					<text>{{item.FModel}}</text>
 					<text>{{item.FUnit}}</text>
 					<text>{{item.FAuxqtyMust}}</text> -->
-					<text><input class="uni-input" type="number" v-model="item.FAuxqty" @blur="updateNumber($event, idx)" style="width: 100px;border-bottom: 1px solid #ccc;" /></text>
+					<text><input class="uni-input" type="number" v-model="item.FAuxqty" @blur="($event) => updateNumber($event, idx, item)" style="width: 100px;border-bottom: 1px solid #ccc;" /></text>
 					<text>{{item.FStock}}</text>
 					<text>{{item.FSP}}</text>
 					<!-- <text>{{item.FBatchNo}}</text> -->
@@ -206,41 +206,6 @@
 					// }
 				}
 			},
-			scan () {
-				if (this.FAuxqtyMust == this.cumulative) {
-					uni.showModal({
-						content: '累计实收已经达到应收数量',
-						showCancel: false
-					})
-				} else {
-					// let result = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: '002', FSP: 'A1-2'}
-					// this.lineData.push({...this.orderInfo, ...result})
-					// this.updateNumber()
-					uni.scanCode({
-					    onlyFromCamera: false,
-					    success: (res) => {
-							console.log(res.result)
-							let resultArr = res.result.split('[')
-							// console.log(resultArr)
-							if (resultArr[0] && resultArr[1]) {
-								let resultArr = res.result.split('[')
-								let result = {FAuxqtyMust: this.FAuxqtyMust, FAuxqty: this.FAuxqtyMust - this.cumulative, FStock: resultArr[0], FSP: resultArr[1]}
-								this.checkIfNormalStock(result)
-								// this.lineData.push({...this.orderInfo, ...result})
-								// this.updateNumber()
-							} else {
-								uni.showModal({
-									content: '请确认您的二维码!',
-									showCancel: false
-								});
-							}
-					    },
-						fail: (err) => {
-							console.log(err)
-						}
-					})
-				}
-			},
 			checkIfNormalStock (result) {
 				var tmpData = "<FSQL>select FStockNumber,FStockName,FSP,FQty from Z_ICInventory WHERE FNUMBER='" + this.FNumber + "' and FStockNumber='" + result.FStock + "' and FSP='" +result.FSP + "'</FSQL>"
 				uni.request({
@@ -281,7 +246,7 @@
 					}
 				})
 			},
-			updateNumber (e, idx) {
+			updateNumber (e, idx, order) {
 				if (!e) {
 					let total = 0
 					this.lineData.map(item => {
@@ -298,7 +263,7 @@
 							content: '请检查输入的实收数量,累计实收数量应该小于等于应收数量。',
 							showCancel: false
 						});
-						this.lineData[idx].FAuxqty = this.FAuxqtyMust - (curTotal - Number(e.detail.value))// this.FAuxqtyMust - this.cumulative
+						this.lineData[idx].FAuxqty = 66// this.FAuxqtyMust - (curTotal - Number(e.target.value))// this.FAuxqtyMust - this.cumulative
 					} else {
 						let total = 0
 						this.lineData.map(item => {
@@ -400,20 +365,15 @@
 					return {
 								FItemID: item.FItemID,
 								FAuxQtyMust:item.FAuxqtyMust,
-								FAuxQty: item.FAuxQty,
+								FAuxQty: item.FAuxqty,
 								FStock: item.FStock,
 								FSP: item.FSP
 							}
 				})
-				console.log(Bti)
-				console.log(Btou)
-				// var tmpData = '<FInterID>' + this.FInterID + '</FInterID>'
-				// 	tmpData += '<FEntryID>' + this.FEntryID + '</FEntryID>'
+				// console.log('Bti', Bti)
 				var tmpData = '<FJsonBtou><![CDATA[' + JSON.stringify({items: Btou}) + ']]></FJsonBtou>'
 					tmpData += '<FJsonBti><![CDATA[' + JSON.stringify({items: Bti}) + ']]></FJsonBti>'
 					tmpData += '<fuserno>' + this.fuserno + '</fuserno>'
-				
-				console.log(tmpData)
 				uni.request({
 					url: mainUrl,
 					method: 'POST',

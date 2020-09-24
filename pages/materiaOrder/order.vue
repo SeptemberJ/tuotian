@@ -46,7 +46,7 @@
 			}
 		},
 		onShow () {
-			// this.getList()
+			this.getList()
 		},
 		onPullDownRefresh() {
 			this.loading = true
@@ -55,14 +55,15 @@
 		},
 		methods: {
 			search () {
-				if (!this.Ficmobillno && !this.FBillNo) {
-					uni.showModal({
-						content: '请输入查询的工单或领料单号!',
-						showCancel: false
-					})
-				} else {
-					this.getList()
-				}
+				this.getList()
+				// if (!this.Ficmobillno && !this.FBillNo) {
+				// 	uni.showModal({
+				// 		content: '请输入查询的工单或领料单号!',
+				// 		showCancel: false
+				// 	})
+				// } else {
+				// 	this.getList()
+				// }
 			},
 			sureCheck () {
 				let tmp = []

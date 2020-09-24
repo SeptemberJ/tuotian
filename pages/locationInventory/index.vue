@@ -33,7 +33,7 @@
 						<text><button type="primary" @click="remove(idx)" style="width:70px;float:left;line-height: 30px;background: #FF0000;">删除</button></text>
 						<text>{{ order.FModel }}</text>
 						<text>{{ order.FQty }}</text>
-						<text><input :class="{'uni-input': true, 'colorRed': order.FAuxQty != order.FQty}" type="number" v-model="order.FAuxQty" @blur="changeNumber(idx, order)" style="border-bottom: 1px solid #ccc;" /></text>
+						<text><input :class="{'uni-input': true, 'colorRed': order.FAuxQty != order.FQty}" type="number" v-model="order.FAuxQty" @blur="(event) => changeNumber(event, idx, order)" style="border-bottom: 1px solid #ccc;" /></text>
 						<text><input class="uni-input" type="text" v-model="order.FNote" style="border-bottom: 1px solid #ccc;" /></text>
 						<text>{{ order.FStock }}</text>
 						<text>{{ order.FSP }}</text>
@@ -80,10 +80,10 @@
 			})
 		},
 		methods: {
-			changeNumber (idx, order) {
-				if (event.target.value > order.FQty) {
+			changeNumber (event, idx, order) {
+				if (event.target.value < 0 || !event.target.value) {
 					uni.showModal({
-						content: '盘点数量不能大于账目库存！',
+						content: '请输入盘点数量！',
 						showCancel: false
 					})
 					this.orderList[idx].FAuxQty = order.FQty
@@ -93,7 +93,8 @@
 				this.orderList.splice(idx, 1)
 			},
 			broadcastBackInfo (result) {
-				var tmpData = '<FSP>' + result + '</FSP>'
+				console.log('result---', result)
+				var tmpData = '<FSP><![CDATA[' + result + ']]></FSP>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -102,13 +103,13 @@
 						'Content-Type':'text/xml'
 					},
 					success: (res) => {
-						if (res.data.code == 0) {
+							console.log('res.data', res.data)
+						if (res.data[0].code == '0') {
 							uni.showModal({
 								content: '存在未审核的领料单！',
 								showCancel: false
 							});
 						} else {
-							console.log('res.data', res.data)
 							this.orderList = res.data.map(item => {
 								item.FAuxQtyMust = item.FQty
 								item.FAuxQty = item.FQty
@@ -206,13 +207,13 @@
 			submit () {
 				let hasM = false
 				this.orderList.map(item => {
-					if (item.FAuxQty > item.FQty){
+					if (item.FAuxQty < 0  || !item.FAuxQty){
 						hasM = true
 					}
 				})
 				if (hasM) {
 					uni.showModal({
-						content: '盘点数量不能大于账目库存,请确认您的数据！',
+						content: '盘点数量不能为空,请确认您的数据！',
 						showCancel: false
 					})
 				} else {

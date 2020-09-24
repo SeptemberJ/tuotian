@@ -11,7 +11,7 @@
 						<text>单位</text>
 						<text>实发数量</text>
 						<text>校对标记</text> -->
-						<text>校对标记</text>
+						<text>校对标记1</text>
 						<text>规格</text>
 						<text>实发数量</text>
 						<text>物料代码</text>
@@ -27,6 +27,7 @@
 					<text>{{ item.FName}}</text>
 					<text>{{ item.FUnit}}</text>
 				</view>
+				
 			</scroll-view>
 		</view>
 		<view style="clear: both;"></view>
@@ -73,7 +74,7 @@
 		methods: {
 			broadcastBackInfo (result) {
 				var tmpData = '<FJson>' + JSON.stringify({items: this.FJson}) + '</FJson>'
-					tmpData += '<FNumber>' + result + '</FNumber>'
+					tmpData += '<FNumber><![CDATA[' + result + ']]></FNumber>'
 				uni.request({
 					url: mainUrl,
 					method: 'POST',
@@ -163,7 +164,6 @@
 						'Content-Type':'text/xml'
 					},
 					success: (res) => {
-						console.log('Select_24', res.data)
 						this.lineData = res.data
 					},
 					fail: (err) => {

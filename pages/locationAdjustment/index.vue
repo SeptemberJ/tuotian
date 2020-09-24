@@ -239,7 +239,7 @@
 			FStockPickerChange (e) {
 				this.indexFStock = e.target.value
 				this.orderList.map(item => {
-					item.FDCStock = this.FStocksOptions[e.target.value].FName
+					item.FDCStock = this.FStocksOptions[e.target.value].FNumber
 				})
 			},
 			getStockData () {
